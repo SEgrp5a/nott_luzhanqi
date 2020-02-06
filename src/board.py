@@ -29,7 +29,7 @@ class Board:
         #board
         brdImgPath = "bin\\board.png"
         orgBrdImg = pygame.image.load(brdImgPath)
-        self.brdImg = pygame.transform.scale(orgBrdImg, (width*numCol, height*numRow))
+        self.brdImg = pygame.transform.scale(orgBrdImg, (width * numCol, height * (numRow + 1)))
         #tile
         self.tiles = self.generateTiles()
         #selection pane
@@ -59,8 +59,8 @@ class Board:
         #Setting Headquarters
         layout[0][1] = "HQ"
         layout[0][3] = "HQ"
-        layout[12][1] = "HQ"
-        layout[12][3] = "HQ"
+        layout[11][1] = "HQ"
+        layout[11][3] = "HQ"
 
         #Setting Front Line
         layout[6][0] = "FL"
@@ -74,7 +74,15 @@ class Board:
         return layout
 
     def generateTiles(self):
-        tiles = [[Button(i * self.width, j * self.height, self.width, self.height, transparent = True) for i in range(self.numCol)] for j in range(self.numRow)]
+        tiles = []
+        for j in range(self.numRow):
+            x = []
+            for i in range(self.numCol):
+                if j >= 6:
+                    x.append(Button(i * self.width, (j + 1) * self.height, self.width, self.height, transparent = True))
+                else:
+                    x.append(Button(i * self.width, j * self.height, self.width, self.height, transparent = True))
+            tiles.append(x)
         return tiles
 
     def generateSelectionPane(self):

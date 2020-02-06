@@ -17,7 +17,7 @@ FPSCLOCK = pygame.time.Clock()
 GAMEDISPLAY = pygame.display.set_mode((displayWidth, displayHeight))
 pygame.display.set_caption("Lu Zhan QI")
 #initialise board
-board = Board(100,55,13,5)
+board = Board(100,55,12,5)
 
 rankData = {"Field Marshal": 1, "General": 2, "Lieutenant General": 3, "Brigadier": 4, "Colonel": 5, "Major": 6, "Captain": 7, "Platoon Commander": 8, "Engineer": 9, "Landmine": 0, "Grenade": 0, "Flag": "F"}       
             
