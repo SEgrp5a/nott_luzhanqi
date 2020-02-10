@@ -3,6 +3,8 @@ import operator
 from button import Button
 from pieces import *
 
+gamePhase=1
+
 class Board:
     def __init__(self,width,height,numRow,numCol):
         self.red = pygame.Color(255,0,0)
@@ -72,6 +74,9 @@ class Board:
         layout[6][3] = "MB"
 
         return layout
+
+    def updateGamePhase(phase):
+        gamePhase=phase
 
     def generateTiles(self):
         tiles = [[Button(i * self.width, j * self.height, self.width, self.height, transparent = True) for i in range(self.numCol)] for j in range(self.numRow)]
@@ -161,6 +166,29 @@ class Board:
             cursorImg = pygame.image.load(self.currentPiece.getPath())
             surface.blit(cursorImg, tuple(x + y for x, y in zip(mousePos, (-25,-25))))
 
+
+    def drawDoneButton(self,surface):
+        #drawing done icon
+        textObj = pygame.font.Font("bin\OpenSans.ttf", 18)
+        buttonRect = pygame.Rect(1200-115, 716-55, 100, 40)
+        pygame.draw.rect(surface, self.red, buttonRect)
+        numTextSurfaceObj = textObj.render("DONE", True, self.black)
+        numTextRectObj = numTextSurfaceObj.get_rect()
+        numTextRectObj.center = (buttonRect.left + 50, buttonRect.top + 20)
+        surface.blit(numTextSurfaceObj, numTextRectObj)
+       
+    def checkDone():
+        for k in range(len(self.selectionPaneTiles)):
+            if self.currentPiece == None and self.pieceData[item][0] == None:
+                genAiPieces()
+
+    def genAiPieces():
+        for j in range(self.numCol):
+            tempY=11; # -1 for each iteration to simulate mirroring
+            for i in range(6):
+                self.tiles[i][j].setPiece(self.tiles[i][tempY].getPiece())
+                tempY--1
+
     def handleEvent(self, event):
         #handle mouse click
         for j in range(self.numCol):
@@ -196,27 +224,36 @@ class Board:
                     outline = False
                 self.tiles[i][j].update(self.tiles[i][j].getColor(), outline, outlineColor)
 
-        for k in range(len(self.selectionPaneTiles)):
-            outline = False
-            outlineColor = None
-            if 'hover' in self.selectionPaneTiles[k].handleEvent(event):
-                #if is hovering on button
-                outline = True
-                outlineColor = self.red
-            if 'down' in self.selectionPaneTiles[k].handleEvent(event):
-                #if button is clicked
-                outline = True
-                outlineColor = self.black
-            if 'click' in self.selectionPaneTiles[k].handleEvent(event):
-                #if button is clicked & released
-                if self.currentPiece == None:
-                    self.currentPiece = self.selectionPaneTiles[k].getPiece()
-                else:
-                    if self.movingPiece and self.currentPiece.toString() == self.selectionPaneTiles[k].getFlag():
-                        self.selectionPaneTiles[k].setPiece(self.currentPiece)
-                        self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] + 1
-                        self.currentPiece = None
-                        self.movingPiece = False
-            if 'exit' in self.selectionPaneTiles[k].handleEvent(event):
+                
+        if gamePhase==1:
+            for k in range(len(self.selectionPaneTiles)):
                 outline = False
-            self.selectionPaneTiles[k].update(self.selectionPaneTiles[k].getColor(), outline, outlineColor)
+                outlineColor = None
+                if 'hover' in self.selectionPaneTiles[k].handleEvent(event):
+                    #if is hovering on button
+                    outline = True
+                    outlineColor = self.red
+                if 'down' in self.selectionPaneTiles[k].handleEvent(event):
+                    #if button is clicked
+                    outline = True
+                    outlineColor = self.black
+                if 'click' in self.selectionPaneTiles[k].handleEvent(event):
+                    #if button is clicked & released
+                    if self.currentPiece == None:
+                        self.currentPiece = self.selectionPaneTiles[k].getPiece()
+                    else:
+                        if self.movingPiece and self.currentPiece.toString() == self.selectionPaneTiles[k].getFlag():
+                            self.selectionPaneTiles[k].setPiece(self.currentPiece)
+                            self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] + 1
+                            self.currentPiece = None
+                            self.movingPiece = False
+                if 'exit' in self.selectionPaneTiles[k].handleEvent(event):
+                    outline = False
+                self.selectionPaneTiles[k].update(self.selectionPaneTiles[k].getColor(), outline, outlineColor)
+
+        mousePos = pygame.mouse.get_pos()
+        mouseClicked=pygame.mouse.get_pressed()
+        if (1200-115)+100 > mousePos[0] > (1200-115) and (716-55)+40 > mousePos[1] > (716-55):
+           if mouseClicked[0]==True:
+            checkDone()
+                

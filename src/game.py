@@ -8,6 +8,8 @@ yellow = (255,255,0)
 black = (0,0,0)
 white = (255,255,255)
 
+gamePhase=1;
+
 FPS = 30
 displayWidth = 1200
 displayHeight = 716   #1 extra pixel to see the last line
@@ -27,6 +29,11 @@ def draw(board):
     
 run = True
 
+def setup():
+    draw(board)
+    board.drawDoneButton(GAMEDISPLAY)
+
+
 while run:
     pygame.time.Clock()
 
@@ -35,7 +42,10 @@ while run:
             run = False
         board.handleEvent(event)
 
-    draw(board)
+        if gamePhase==1:
+            setup()
+        if gamePhase==2:
+            draw(board)
 
     pygame.display.update()
     FPSCLOCK.tick(FPS)
