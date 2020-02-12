@@ -40,7 +40,6 @@ class Board:
         self.movingPiece = False
 
     def generateLayout(self):
-        #Initialise the game board
         #Set all as Soldier Station
         layout = [["SS" for i in range(self.numCol)] for j in range(self.numRow)]
 
@@ -50,26 +49,17 @@ class Board:
         layout[3][2] = "CP"
         layout[4][1] = "CP"
         layout[4][3] = "CP"
-        layout[8][1] = "CP"
-        layout[8][3] = "CP"
-        layout[9][2] = "CP"
-        layout[10][1] = "CP"
-        layout[10][3] = "CP"
+        layout[7][1] = "CP"
+        layout[7][3] = "CP"
+        layout[8][2] = "CP"
+        layout[9][1] = "CP"
+        layout[9][3] = "CP"
 
         #Setting Headquarters
         layout[0][1] = "HQ"
         layout[0][3] = "HQ"
         layout[11][1] = "HQ"
         layout[11][3] = "HQ"
-
-        #Setting Front Line
-        layout[6][0] = "FL"
-        layout[6][2] = "FL"
-        layout[6][4] = "FL"
-
-        #Setting Mountain Border
-        layout[6][1] = "MB"
-        layout[6][3] = "MB"
 
         return layout
 
@@ -79,9 +69,10 @@ class Board:
             x = []
             for i in range(self.numCol):
                 if j >= 6:
-                    x.append(Button(i * self.width, (j + 1) * self.height, self.width, self.height, transparent = True))
+                    temp = Button(i * self.width, (j + 1) * self.height, self.width, self.height, transparent = True)
                 else:
-                    x.append(Button(i * self.width, j * self.height, self.width, self.height, transparent = True))
+                    temp = Button(i * self.width, j * self.height, self.width, self.height, transparent = True)
+                x.append(temp)
             tiles.append(x)
         return tiles
 
@@ -92,7 +83,7 @@ class Board:
         y = 200
         i = 0
         for item in self.pieceData:
-            selectionPaneTiles[i] = Button(x, y, 50, 50, color = (255,255,0))
+            selectionPaneTiles[i] = Button(x, y, 50, 50, color = (0,0,255))
             if item == "Flag":
                 selectionPaneTiles[i].setPiece(Flag(0,selectionPaneTiles[i].getPos()))
             elif item == "Grenade":
@@ -129,6 +120,7 @@ class Board:
         return selectionPaneTiles
 
     def draw(self,surface):
+        """Draw the entire interface"""
         #Draw board
         surface.blit(self.brdImg,(0,0))
         #Draw tiles
@@ -169,8 +161,25 @@ class Board:
             cursorImg = pygame.image.load(self.currentPiece.getPath())
             surface.blit(cursorImg, tuple(x + y for x, y in zip(mousePos, (-25,-25))))
 
+    def checkAvailablePlacement(self,row,col,piece):
+        """check if piece placement is vailble"""
+        if row < 6:
+            return False
+        if self.layout[row][col] == "CP":
+            return False
+        if piece.toString() == "Flag":
+            if self.layout[row][col] != "HQ":
+                return False
+        if piece.toString() == "Landmine":
+            if not(row == 10 or row == 11):
+                return False
+        if piece.toString() == "Grenade":
+            if row == 6:
+                return False
+        return True
+
     def handleEvent(self, event):
-        #handle mouse click
+        """handle mouse click"""
         for j in range(self.numCol):
             for i in range(self.numRow):
                 outline = False
@@ -194,11 +203,12 @@ class Board:
                     else:
                         if self.tiles[i][j].getPiece() == None:
                             #place the piece if the tile does not contain a piece
-                            self.tiles[i][j].setPiece(self.currentPiece)
-                            if not self.movingPiece:
-                                self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] - 1
-                            self.currentPiece = None
-                            self.movingPiece = False
+                            if self.checkAvailablePlacement(i,j,self.currentPiece):
+                                self.tiles[i][j].setPiece(self.currentPiece)
+                                if not self.movingPiece:
+                                    self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] - 1
+                                self.currentPiece = None
+                                self.movingPiece = False
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     #if mouse exited a button
                     outline = False
