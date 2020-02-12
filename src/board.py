@@ -3,8 +3,6 @@ import operator
 from button import Button
 from pieces import *
 
-gamePhase=1
-
 class Board:
     def __init__(self,width,height,numRow,numCol):
         self.red = pygame.Color(255,0,0)
@@ -31,7 +29,7 @@ class Board:
         #board
         brdImgPath = "bin\\board.png"
         orgBrdImg = pygame.image.load(brdImgPath)
-        self.brdImg = pygame.transform.scale(orgBrdImg, (width*numCol, height*numRow))
+        self.brdImg = pygame.transform.scale(orgBrdImg, (width*numCol, height*(numRow+1)))
         #tile
         self.tiles = self.generateTiles()
         #selection pane
@@ -61,8 +59,8 @@ class Board:
         #Setting Headquarters
         layout[0][1] = "HQ"
         layout[0][3] = "HQ"
-        layout[12][1] = "HQ"
-        layout[12][3] = "HQ"
+        layout[11][1] = "HQ"
+        layout[11][3] = "HQ"
 
         #Setting Front Line
         layout[6][0] = "FL"
@@ -75,11 +73,16 @@ class Board:
 
         return layout
 
-    def updateGamePhase(phase):
-        gamePhase=phase
-
     def generateTiles(self):
-        tiles = [[Button(i * self.width, j * self.height, self.width, self.height, transparent = True) for i in range(self.numCol)] for j in range(self.numRow)]
+        tiles=[]
+        for j in range(self.numRow):
+            x=[]
+            for i in range(self.numCol):
+                if j>=6:
+                    x.append(Button(i * self.width, (j+1)* self.height, self.width, self.height, transparent = True))
+                else:
+                     x.append(Button(i * self.width, j* self.height, self.width, self.height, transparent = True))
+            tiles.append(x)
         return tiles
 
     def generateSelectionPane(self):
@@ -125,6 +128,26 @@ class Board:
 
         return selectionPaneTiles
 
+    def genAiPieces(self):
+        for j in range(self.numCol):
+            tempY=11; # -1 for each iteration to simulate mirroring , temp=4 and below works
+            for i in range(6):
+                temp=self.tiles[tempY][j].getPiece()
+                print(temp) #returns None for all values of tempY
+                self.tiles[i][j].setPiece(temp)
+                tempY=tempY-1
+        gamePhase=2
+        print("Testing 4")
+
+    def checkDone(self):
+        complete=True
+        if self.currentPiece == None:
+            for k in self.pieceData:
+                if self.pieceData[k][0] == 0:
+                    complete=True;
+            if complete==True:
+                self.genAiPieces()
+
     def draw(self,surface):
         #Draw board
         surface.blit(self.brdImg,(0,0))
@@ -166,29 +189,6 @@ class Board:
             cursorImg = pygame.image.load(self.currentPiece.getPath())
             surface.blit(cursorImg, tuple(x + y for x, y in zip(mousePos, (-25,-25))))
 
-
-    def drawDoneButton(self,surface):
-        #drawing done icon
-        textObj = pygame.font.Font("bin\OpenSans.ttf", 18)
-        buttonRect = pygame.Rect(1200-115, 716-55, 100, 40)
-        pygame.draw.rect(surface, self.red, buttonRect)
-        numTextSurfaceObj = textObj.render("DONE", True, self.black)
-        numTextRectObj = numTextSurfaceObj.get_rect()
-        numTextRectObj.center = (buttonRect.left + 50, buttonRect.top + 20)
-        surface.blit(numTextSurfaceObj, numTextRectObj)
-       
-    def checkDone():
-        for k in range(len(self.selectionPaneTiles)):
-            if self.currentPiece == None and self.pieceData[item][0] == None:
-                genAiPieces()
-
-    def genAiPieces():
-        for j in range(self.numCol):
-            tempY=11; # -1 for each iteration to simulate mirroring
-            for i in range(6):
-                self.tiles[i][j].setPiece(self.tiles[i][tempY].getPiece())
-                tempY--1
-
     def handleEvent(self, event):
         #handle mouse click
         for j in range(self.numCol):
@@ -223,9 +223,8 @@ class Board:
                     #if mouse exited a button
                     outline = False
                 self.tiles[i][j].update(self.tiles[i][j].getColor(), outline, outlineColor)
-
-                
-        if gamePhase==1:
+              
+        #if gamePhase==1:
             for k in range(len(self.selectionPaneTiles)):
                 outline = False
                 outlineColor = None
@@ -250,10 +249,4 @@ class Board:
                 if 'exit' in self.selectionPaneTiles[k].handleEvent(event):
                     outline = False
                 self.selectionPaneTiles[k].update(self.selectionPaneTiles[k].getColor(), outline, outlineColor)
-
-        mousePos = pygame.mouse.get_pos()
-        mouseClicked=pygame.mouse.get_pressed()
-        if (1200-115)+100 > mousePos[0] > (1200-115) and (716-55)+40 > mousePos[1] > (716-55):
-           if mouseClicked[0]==True:
-            checkDone()
                 

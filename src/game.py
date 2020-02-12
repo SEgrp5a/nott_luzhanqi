@@ -19,7 +19,7 @@ FPSCLOCK = pygame.time.Clock()
 GAMEDISPLAY = pygame.display.set_mode((displayWidth, displayHeight))
 pygame.display.set_caption("Lu Zhan QI")
 #initialise board
-board = Board(100,55,13,5)
+board = Board(100,55,12,5)
 
 rankData = {"Field Marshal": 1, "General": 2, "Lieutenant General": 3, "Brigadier": 4, "Colonel": 5, "Major": 6, "Captain": 7, "Platoon Commander": 8, "Engineer": 9, "Landmine": 0, "Grenade": 0, "Flag": "F"}       
             
@@ -29,9 +29,19 @@ def draw(board):
     
 run = True
 
+def drawDoneButton(surface):
+        #drawing done icon
+        textObj = pygame.font.Font("bin\OpenSans.ttf", 18)
+        buttonRect = pygame.Rect(1200-115, 716-55, 100, 40)
+        pygame.draw.rect(surface, red, buttonRect)
+        numTextSurfaceObj = textObj.render("DONE", True, black)
+        numTextRectObj = numTextSurfaceObj.get_rect()
+        numTextRectObj.center = (buttonRect.left + 50, buttonRect.top + 20)
+        surface.blit(numTextSurfaceObj, numTextRectObj)
+
 def setup():
     draw(board)
-    board.drawDoneButton(GAMEDISPLAY)
+    drawDoneButton(GAMEDISPLAY)
 
 
 while run:
@@ -48,6 +58,13 @@ while run:
             draw(board)
 
     pygame.display.update()
+
+    mousePos = pygame.mouse.get_pos()
+    mouseClicked=pygame.mouse.get_pressed()
+    if (1200-115)+100 > mousePos[0] > (1200-115) and (716-55)+40 > mousePos[1] > (716-55):
+        if mouseClicked[0]==True:
+            board.checkDone()
+
     FPSCLOCK.tick(FPS)
 
 pygame.quit()
