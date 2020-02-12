@@ -38,6 +38,11 @@ class Board:
         self.currentPiece = None
         #moving piece
         self.movingPiece = False
+        self.DoneButton=self.generateDoneButton()
+        self.gamePhase=1
+
+    def getGamePhase():
+        return self.gamePhase
 
     def generateLayout(self):
         #Initialise the game board
@@ -128,23 +133,25 @@ class Board:
 
         return selectionPaneTiles
 
+    def generateDoneButton(self):
+        return Button(1200-115, 716-55, 100, 40,self.red,text="Done")
+
     def genAiPieces(self):
         for j in range(self.numCol):
-            tempY=11; # -1 for each iteration to simulate mirroring , temp=4 and below works
+            tempY=11; # -1 for each iteration to simulate mirroring
             for i in range(6):
-                temp=self.tiles[tempY][j].getPiece()
-                print(temp) #returns None for all values of tempY
-                self.tiles[i][j].setPiece(temp)
+                self.tiles[i][j].setPiece(self.tiles[tempY][j].getPiece())
                 tempY=tempY-1
-        gamePhase=2
-        print("Testing 4")
+        self.gamePhase=2
 
     def checkDone(self):
-        complete=True
+        complete=False
         if self.currentPiece == None:
             for k in self.pieceData:
                 if self.pieceData[k][0] == 0:
                     complete=True;
+                else:
+                    complete=False;
             if complete==True:
                 self.genAiPieces()
 
@@ -189,6 +196,9 @@ class Board:
             cursorImg = pygame.image.load(self.currentPiece.getPath())
             surface.blit(cursorImg, tuple(x + y for x, y in zip(mousePos, (-25,-25))))
 
+        if self.gamePhase==1:
+            self.DoneButton.draw(surface)
+
     def handleEvent(self, event):
         #handle mouse click
         for j in range(self.numCol):
@@ -224,7 +234,7 @@ class Board:
                     outline = False
                 self.tiles[i][j].update(self.tiles[i][j].getColor(), outline, outlineColor)
               
-        #if gamePhase==1:
+        if self.gamePhase==1:
             for k in range(len(self.selectionPaneTiles)):
                 outline = False
                 outlineColor = None
@@ -249,4 +259,7 @@ class Board:
                 if 'exit' in self.selectionPaneTiles[k].handleEvent(event):
                     outline = False
                 self.selectionPaneTiles[k].update(self.selectionPaneTiles[k].getColor(), outline, outlineColor)
+
+        if 'click' in self.DoneButton.handleEvent(event):
+            self.checkDone()
                 
