@@ -38,7 +38,7 @@ class Board:
         self.currentPiece = None
         #moving piece
         self.movingPiece = False
-        self.DoneButton=self.generateDoneButton()
+        self.doneButton=self.generateDoneButton()
         self.gamePhase=1
 
     def getGamePhase():
@@ -74,9 +74,9 @@ class Board:
             x=[]
             for i in range(self.numCol):
                 if j>=6:
-                    x.append(Button(i * self.width, (j+1)* self.height, self.width, self.height, transparent = True))
+                    x.append(Button(i * self.width, (j + 1) * self.height, self.width, self.height, transparent = True))
                 else:
-                     x.append(Button(i * self.width, j* self.height, self.width, self.height, transparent = True))
+                     x.append(Button(i * self.width, j * self.height, self.width, self.height, transparent = True))
             tiles.append(x)
         return tiles
 
@@ -135,15 +135,16 @@ class Board:
         self.gamePhase=2
 
     def checkDone(self):
-        complete=False
+        complete = False
         if self.currentPiece == None:
-            for k in self.pieceData:
-                if self.pieceData[k][0] == 0:
-                    complete=True;
+            for item in self.pieceData:
+                if self.pieceData[item][0] == 0:
+                    complete = True;
                 else:
-                    complete=False;
-            if complete==True:
+                    complete = False;
+            if complete == True:
                 self.genAiPieces()
+        return complete
 
     def draw(self,surface):
         """Draw the entire interface"""
@@ -188,7 +189,7 @@ class Board:
             surface.blit(cursorImg, tuple(x + y for x, y in zip(mousePos, (-25,-25))))
 
         if self.gamePhase==1:
-            self.DoneButton.draw(surface)
+            self.doneButton.draw(surface)
 
     def checkAvailablePlacement(self,row,col,piece):
         """check if piece placement is vailble"""
@@ -211,22 +212,22 @@ class Board:
         """handle mouse click"""
         for j in range(self.numCol):
             for i in range(self.numRow):
-                outline = False
-                outlineColor = None
+                outline_tile = False
+                outlineColor_tile = None
                 if 'hover' in self.tiles[i][j].handleEvent(event):
                     #if is hovering on button
-                    outline = True
+                    outline_tile = True
                     if self.currentPiece != None:
                         if self.checkAvailablePlacement(i,j,self.currentPiece):
-                            outlineColor = self.green
+                            outlineColor_tile = self.green
                         else:
-                            outlineColor = self.red
+                            outlineColor_tile = self.red
                     else:
-                        outlineColor = self.black
+                        outlineColor_tile = self.black
                 if 'down' in self.tiles[i][j].handleEvent(event):
                     #if button is clicked
-                    outline = True
-                    outlineColor = self.blue
+                    outline_tile = True
+                    outlineColor_tile = self.blue
                 if 'click' in self.tiles[i][j].handleEvent(event):
                     #if button is clicked & released
                     if self.currentPiece == None:
@@ -246,21 +247,21 @@ class Board:
                                 self.movingPiece = False
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     #if mouse exited a button
-                    outline = False
-                self.tiles[i][j].update(self.tiles[i][j].getColor(), outline, outlineColor)
+                    outline_tile = False
+                self.tiles[i][j].update(self.tiles[i][j].getColor(), outline_tile, outlineColor_tile)
 
-        if self.gamePhase==1:
+        if self.gamePhase == 1:
             for k in range(len(self.selectionPaneTiles)):
-                outline = False
-                outlineColor = None
+                outline_select = False
+                outlineColor_select = None
                 if 'hover' in self.selectionPaneTiles[k].handleEvent(event):
                     #if is hovering on button
-                    outline = True
-                    outlineColor = self.black
+                    outline_select = True
+                    outlineColor_select = self.black
                 if 'down' in self.selectionPaneTiles[k].handleEvent(event):
                     #if button is clicked
-                    outline = True
-                    outlineColor = self.blue
+                    outline_select = True
+                    outlineColor_select = self.blue
                 if 'click' in self.selectionPaneTiles[k].handleEvent(event):
                     #if button is clicked & released
                     if self.currentPiece == None:
@@ -272,8 +273,23 @@ class Board:
                             self.currentPiece = None
                             self.movingPiece = False
                 if 'exit' in self.selectionPaneTiles[k].handleEvent(event):
-                    outline = False
-                self.selectionPaneTiles[k].update(self.selectionPaneTiles[k].getColor(), outline, outlineColor)
+                    outline_select = False
+                self.selectionPaneTiles[k].update(self.selectionPaneTiles[k].getColor(), outline_select, outlineColor_select)
 
-        if 'click' in self.DoneButton.handleEvent(event):
-            self.checkDone()
+        if self.gamePhase == 1:
+            outline_done = False
+            outlineColor_done = None
+            if 'hover' in self.doneButton.handleEvent(event):
+                #if is hovering on button
+                outline_done = True
+                outlineColor_done = self.black
+            if 'down' in self.doneButton.handleEvent(event):
+                #if button is clicked
+                outline_done = True
+                outlineColor_done = self.blue
+            if 'click' in self.doneButton.handleEvent(event):
+                #if button is clicked & released
+                self.checkDone()
+            if 'exit' in self.doneButton.handleEvent(event):
+                outline_done = False
+            self.doneButton.update(self.doneButton.getColor(),outline_done,outlineColor_done)
