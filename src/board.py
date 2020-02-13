@@ -83,7 +83,7 @@ class Board:
         y = 200
         i = 0
         for item in self.pieceData:
-            selectionPaneTiles[i] = Button(x, y, 50, 50, color = (0,0,255))
+            selectionPaneTiles[i] = Button(x, y, 50, 50, color = (255,255,0))
             if item == "Flag":
                 selectionPaneTiles[i].setPiece(Flag(0,selectionPaneTiles[i].getPos()))
             elif item == "Grenade":
@@ -187,7 +187,13 @@ class Board:
                 if 'hover' in self.tiles[i][j].handleEvent(event):
                     #if is hovering on button
                     outline = True
-                    outlineColor = self.green
+                    if self.currentPiece != None:
+                        if self.checkAvailablePlacement(i,j,self.currentPiece):
+                            outlineColor = self.green
+                        else:
+                            outlineColor = self.red
+                    else:
+                        outlineColor = self.black
                 if 'down' in self.tiles[i][j].handleEvent(event):
                     #if button is clicked
                     outline = True
@@ -220,11 +226,11 @@ class Board:
             if 'hover' in self.selectionPaneTiles[k].handleEvent(event):
                 #if is hovering on button
                 outline = True
-                outlineColor = self.red
+                outlineColor = self.black
             if 'down' in self.selectionPaneTiles[k].handleEvent(event):
                 #if button is clicked
                 outline = True
-                outlineColor = self.black
+                outlineColor = self.blue
             if 'click' in self.selectionPaneTiles[k].handleEvent(event):
                 #if button is clicked & released
                 if self.currentPiece == None:
