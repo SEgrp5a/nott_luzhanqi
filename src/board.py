@@ -13,12 +13,12 @@ class Board:
                           "Grenade": [2],
                           "Landmine": [3],
                           "Marshal": [1],
-                          "General": [1], 
-                          "Lieutenant": [2], 
+                          "General": [1],
+                          "Lieutenant": [2],
                           "Brigadier": [2],
-                          "Colonel": [2], 
-                          "Major": [2], 
-                          "Captain": [3], 
+                          "Colonel": [2],
+                          "Major": [2],
+                          "Captain": [3],
                           "Commander": [3],
                           "Engineer": [3]}
         self.width = width
@@ -38,6 +38,11 @@ class Board:
         self.currentPiece = None
         #moving piece
         self.movingPiece = False
+        self.DoneButton=self.generateDoneButton()
+        self.gamePhase=1
+
+    def getGamePhase():
+        return self.gamePhase
 
     def generateLayout(self):
         #Set all as Soldier Station
@@ -64,15 +69,14 @@ class Board:
         return layout
 
     def generateTiles(self):
-        tiles = []
+        tiles=[]
         for j in range(self.numRow):
-            x = []
+            x=[]
             for i in range(self.numCol):
-                if j >= 6:
-                    temp = Button(i * self.width, (j + 1) * self.height, self.width, self.height, transparent = True)
+                if j>=6:
+                    x.append(Button(i * self.width, (j+1)* self.height, self.width, self.height, transparent = True))
                 else:
-                    temp = Button(i * self.width, j * self.height, self.width, self.height, transparent = True)
-                x.append(temp)
+                     x.append(Button(i * self.width, j* self.height, self.width, self.height, transparent = True))
             tiles.append(x)
         return tiles
 
@@ -119,6 +123,28 @@ class Board:
 
         return selectionPaneTiles
 
+    def generateDoneButton(self):
+        return Button(1200-115, 716-55, 100, 40,self.red,text="Done")
+
+    def genAiPieces(self):
+        for j in range(self.numCol):
+            tempY=11; # -1 for each iteration to simulate mirroring
+            for i in range(6):
+                self.tiles[i][j].setPiece(self.tiles[tempY][j].getPiece())
+                tempY=tempY-1
+        self.gamePhase=2
+
+    def checkDone(self):
+        complete=False
+        if self.currentPiece == None:
+            for k in self.pieceData:
+                if self.pieceData[k][0] == 0:
+                    complete=True;
+                else:
+                    complete=False;
+            if complete==True:
+                self.genAiPieces()
+
     def draw(self,surface):
         """Draw the entire interface"""
         #Draw board
@@ -160,6 +186,9 @@ class Board:
             mousePos = pygame.mouse.get_pos()
             cursorImg = pygame.image.load(self.currentPiece.getPath())
             surface.blit(cursorImg, tuple(x + y for x, y in zip(mousePos, (-25,-25))))
+
+        if self.gamePhase==1:
+            self.DoneButton.draw(surface)
 
     def checkAvailablePlacement(self,row,col,piece):
         """check if piece placement is vailble"""
@@ -220,27 +249,31 @@ class Board:
                     outline = False
                 self.tiles[i][j].update(self.tiles[i][j].getColor(), outline, outlineColor)
 
-        for k in range(len(self.selectionPaneTiles)):
-            outline = False
-            outlineColor = None
-            if 'hover' in self.selectionPaneTiles[k].handleEvent(event):
-                #if is hovering on button
-                outline = True
-                outlineColor = self.black
-            if 'down' in self.selectionPaneTiles[k].handleEvent(event):
-                #if button is clicked
-                outline = True
-                outlineColor = self.blue
-            if 'click' in self.selectionPaneTiles[k].handleEvent(event):
-                #if button is clicked & released
-                if self.currentPiece == None:
-                    self.currentPiece = self.selectionPaneTiles[k].getPiece()
-                else:
-                    if self.movingPiece and self.currentPiece.toString() == self.selectionPaneTiles[k].getFlag():
-                        self.selectionPaneTiles[k].setPiece(self.currentPiece)
-                        self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] + 1
-                        self.currentPiece = None
-                        self.movingPiece = False
-            if 'exit' in self.selectionPaneTiles[k].handleEvent(event):
+        if self.gamePhase==1:
+            for k in range(len(self.selectionPaneTiles)):
                 outline = False
-            self.selectionPaneTiles[k].update(self.selectionPaneTiles[k].getColor(), outline, outlineColor)
+                outlineColor = None
+                if 'hover' in self.selectionPaneTiles[k].handleEvent(event):
+                    #if is hovering on button
+                    outline = True
+                    outlineColor = self.black
+                if 'down' in self.selectionPaneTiles[k].handleEvent(event):
+                    #if button is clicked
+                    outline = True
+                    outlineColor = self.blue
+                if 'click' in self.selectionPaneTiles[k].handleEvent(event):
+                    #if button is clicked & released
+                    if self.currentPiece == None:
+                        self.currentPiece = self.selectionPaneTiles[k].getPiece()
+                    else:
+                        if self.movingPiece and self.currentPiece.toString() == self.selectionPaneTiles[k].getFlag():
+                            self.selectionPaneTiles[k].setPiece(self.currentPiece)
+                            self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] + 1
+                            self.currentPiece = None
+                            self.movingPiece = False
+                if 'exit' in self.selectionPaneTiles[k].handleEvent(event):
+                    outline = False
+                self.selectionPaneTiles[k].update(self.selectionPaneTiles[k].getColor(), outline, outlineColor)
+
+        if 'click' in self.DoneButton.handleEvent(event):
+            self.checkDone()

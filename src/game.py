@@ -12,32 +12,33 @@ FPS = 30
 displayWidth = 1200
 displayHeight = 716   #1 extra pixel to see the last line
 
+#initialise board
+board = Board(100,55,12,5)
+
 pygame.init()
 FPSCLOCK = pygame.time.Clock()
 GAMEDISPLAY = pygame.display.set_mode((displayWidth, displayHeight))
 pygame.display.set_caption("Lu Zhan QI")
-#initialise board
-board = Board(100,55,12,5)
 
-rankData = {"Field Marshal": 1, "General": 2, "Lieutenant General": 3, "Brigadier": 4, "Colonel": 5, "Major": 6, "Captain": 7, "Platoon Commander": 8, "Engineer": 9, "Landmine": 0, "Grenade": 0, "Flag": "F"}       
-            
+rankData = {"Field Marshal": 1, "General": 2, "Lieutenant General": 3, "Brigadier": 4, "Colonel": 5, "Major": 6, "Captain": 7, "Platoon Commander": 8, "Engineer": 9, "Landmine": 0, "Grenade": 0, "Flag": "F"}
+
 def draw(board):
     GAMEDISPLAY.fill(white)
     board.draw(GAMEDISPLAY)
-    
+
 run = True
 
 while run:
     pygame.time.Clock()
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
         board.handleEvent(event)
 
-    draw(board)
+        draw(board)
 
     pygame.display.update()
+
     FPSCLOCK.tick(FPS)
 
 pygame.quit()
