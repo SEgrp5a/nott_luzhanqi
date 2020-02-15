@@ -151,7 +151,8 @@ class Board:
                 if self.pieceData[k][0] == 0:
                     complete=True;
                 else:
-                    complete=False;
+                    # can do a popo- up to let user know not all pieces are set
+                    break
             if complete==True:
                 self.genAiPieces()
 
