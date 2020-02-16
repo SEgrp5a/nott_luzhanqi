@@ -89,7 +89,7 @@ class Board:
         for item in self.pieceData:
             selectionPaneTiles[i] = SelectionPaneButton(x, y, 50, 50, color = (255,255,0), nPieces = self.pieceData[item][0])
             for j in range(self.pieceData[item][0]):
-                selectionPaneTiles[i].addPiece(self.spawnPiece(item, selectionPaneTiles[i].getPos()))
+                selectionPaneTiles[i].addPiece(self.spawnPiece(0, item, selectionPaneTiles[i].getPos()))
             selectionPaneTiles[i].setFlag(item)
             i = i + 1
             if x > 1050:
@@ -101,30 +101,30 @@ class Board:
 
         return selectionPaneTiles
 
-    def spawnPiece(self, piece, pos):
+    def spawnPiece(self, alliance, piece, pos):
         spawn = None
         if piece == "Flag":
-            spawn = Flag(0, pos)
+            spawn = Flag(alliance, pos)
         elif piece == "Grenade":
-            spawn = Grenade(0, pos)
+            spawn = Grenade(alliance, pos)
         elif piece == "Landmine":
-            spawn = Landmine(0, pos)
+            spawn = Landmine(alliance, pos)
         elif piece == "Marshal":
-            spawn = Marshal(0, pos)
+            spawn = Marshal(alliance, pos)
         elif piece == "General":
-            spawn = General(0, pos)
+            spawn = General(alliance, pos)
         elif piece == "Lieutenant":
-            spawn = Lieutenant(0, pos)
+            spawn = Lieutenant(alliance, pos)
         elif piece == "Brigadier":
-            spawn = Brigadier(0, pos)
+            spawn = Brigadier(alliance, pos)
         elif piece == "Colonel":
-            spawn = Colonel(0, pos)
+            spawn = Colonel(alliance, pos)
         elif piece == "Major":
-            spawn = Major(0, pos)
+            spawn = Major(alliance, pos)
         elif piece == "Captain":
-            spawn = Captain(0, pos)
+            spawn = Captain(alliance, pos)
         elif piece == "Commander":
-            spawn = Commander(0, pos)
+            spawn = Commander(alliance, pos)
         elif piece == "Engineer":
             spawn = Engineer(0, pos)
 
@@ -137,7 +137,8 @@ class Board:
         for j in range(self.numCol):
             tempY = 11; # -1 for each iteration to simulate mirroring
             for i in range(6):
-                self.tiles[i][j].setPiece(self.tiles[tempY][j].getPiece())
+                if self.tiles[tempY][j].getPiece() != None:
+                    self.tiles[i][j].setPiece(self.spawnPiece(1, self.tiles[tempY][j].getPiece().toString(), self.tiles[i][j].getPos()))
                 tempY = tempY - 1
         self.gamePhase = 2
 
