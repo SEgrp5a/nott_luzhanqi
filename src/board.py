@@ -1,6 +1,6 @@
 import pygame
 import operator
-from button import Button
+from button import *
 from pieces import *
 
 class Board:
@@ -81,14 +81,15 @@ class Board:
         return tiles
 
     def generateSelectionPane(self):
-        selectionPaneTiles = [None for i in range(12)]
+        selectionPaneTiles = [None for _ in range(12)]
         #draws text and pieces beside board
         x = 725
         y = 200
         i = 0
         for item in self.pieceData:
-            selectionPaneTiles[i] = Button(x, y, 50, 50, color = (255,255,0))
-            selectionPaneTiles[i].setPiece(self.spawnPiece(item, selectionPaneTiles[i].getPos()))
+            selectionPaneTiles[i] = SelectionPaneButton(x, y, 50, 50, color = (255,255,0), nPieces = self.pieceData[item][0])
+            for j in range(self.pieceData[item][0]):
+                selectionPaneTiles[i].addPiece(self.spawnPiece(item, selectionPaneTiles[i].getPos()))
             selectionPaneTiles[i].setFlag(item)
             i = i + 1
             if x > 1050:
@@ -200,17 +201,19 @@ class Board:
     def checkAvailablePlacement(self,row,col,piece):
         """check if piece placement is vailble"""
         if row < 6:
+            #opposite territory
             return False
         if self.layout[row][col] == "CP":
+            #cannot be initialise at camps
             return False
-        if piece.toString() == "Flag":
-            if self.layout[row][col] != "HQ":
-                return False
-        if piece.toString() == "Landmine":
-            if not(row == 10 or row == 11):
-                return False
-        if piece.toString() == "Grenade":
-            if row == 6:
+        if piece.toString() == "Flag" and self.layout[row][col] != "HQ":
+            #flag can only be placed in headquaters
+            return False
+        if piece.toString() == "Landmine" and not(row == 10 or row == 11):
+            #landmine can only be initailse at last 2 rows
+            return False
+        if piece.toString() == "Grenade" and row == 6:
+            #grenade cannot be placed at 1st row
                 return False
         return True
 
@@ -272,9 +275,10 @@ class Board:
                     #if button is clicked & released
                     if self.currentPiece == None:
                         self.currentPiece = self.selectionPaneTiles[k].getPiece()
+                        self.selectionPaneTiles[k].removePiece()
                     else:
                         if self.currentPiece.toString() == self.selectionPaneTiles[k].getFlag():
-                            self.selectionPaneTiles[k].setPiece(self.currentPiece)
+                            self.selectionPaneTiles[k].addPiece(self.currentPiece)
                             if self.movingPiece:
                                 self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] + 1
                             self.currentPiece = None
