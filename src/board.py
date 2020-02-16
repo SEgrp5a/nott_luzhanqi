@@ -38,8 +38,8 @@ class Board:
         self.currentPiece = None
         #moving piece
         self.movingPiece = False
-        self.doneButton=self.generateDoneButton()
-        self.gamePhase=1
+        self.doneButton = self.generateDoneButton()
+        self.gamePhase = 1
 
     def getGamePhase():
         return self.gamePhase
@@ -88,30 +88,7 @@ class Board:
         i = 0
         for item in self.pieceData:
             selectionPaneTiles[i] = Button(x, y, 50, 50, color = (255,255,0))
-            if item == "Flag":
-                selectionPaneTiles[i].setPiece(Flag(0,selectionPaneTiles[i].getPos()))
-            elif item == "Grenade":
-                selectionPaneTiles[i].setPiece(Grenade(0,selectionPaneTiles[i].getPos()))
-            elif item == "Landmine":
-                selectionPaneTiles[i].setPiece(Landmine(0,selectionPaneTiles[i].getPos()))
-            elif item == "Marshal":
-                selectionPaneTiles[i].setPiece(Marshal(0,selectionPaneTiles[i].getPos()))
-            elif item == "General":
-                selectionPaneTiles[i].setPiece(General(0,selectionPaneTiles[i].getPos()))
-            elif item == "Lieutenant":
-                selectionPaneTiles[i].setPiece(Lieutenant(0,selectionPaneTiles[i].getPos()))
-            elif item == "Brigadier":
-                selectionPaneTiles[i].setPiece(Brigadier(0,selectionPaneTiles[i].getPos()))
-            elif item == "Colonel":
-                selectionPaneTiles[i].setPiece(Colonel(0,selectionPaneTiles[i].getPos()))
-            elif item == "Major":
-                selectionPaneTiles[i].setPiece(Major(0,selectionPaneTiles[i].getPos()))
-            elif item == "Captain":
-                selectionPaneTiles[i].setPiece(Captain(0,selectionPaneTiles[i].getPos()))
-            elif item == "Commander":
-                selectionPaneTiles[i].setPiece(Commander(0,selectionPaneTiles[i].getPos()))
-            elif item == "Engineer":
-                selectionPaneTiles[i].setPiece(Engineer(0,selectionPaneTiles[i].getPos()))
+            selectionPaneTiles[i].setPiece(self.spawnPiece(item, selectionPaneTiles[i].getPos()))
             selectionPaneTiles[i].setFlag(item)
             i = i + 1
             if x > 1050:
@@ -123,16 +100,45 @@ class Board:
 
         return selectionPaneTiles
 
+    def spawnPiece(self, piece, pos):
+        spawn = None
+        if piece == "Flag":
+            spawn = Flag(0, pos)
+        elif piece == "Grenade":
+            spawn = Grenade(0, pos)
+        elif piece == "Landmine":
+            spawn = Landmine(0, pos)
+        elif piece == "Marshal":
+            spawn = Marshal(0, pos)
+        elif piece == "General":
+            spawn = General(0, pos)
+        elif piece == "Lieutenant":
+            spawn = Lieutenant(0, pos)
+        elif piece == "Brigadier":
+            spawn = Brigadier(0, pos)
+        elif piece == "Colonel":
+            spawn = Colonel(0, pos)
+        elif piece == "Major":
+            spawn = Major(0, pos)
+        elif piece == "Captain":
+            spawn = Captain(0, pos)
+        elif piece == "Commander":
+            spawn = Commander(0, pos)
+        elif piece == "Engineer":
+            spawn = Engineer(0, pos)
+
+        return spawn
+
     def generateDoneButton(self):
-        return Button(1200-115, 716-55, 100, 40,self.red,text="Done")
+        return Button(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
 
     def genAiPieces(self):
         for j in range(self.numCol):
-            tempY=11; # -1 for each iteration to simulate mirroring
+            tempY = 11; # -1 for each iteration to simulate mirroring
             for i in range(6):
                 self.tiles[i][j].setPiece(self.tiles[tempY][j].getPiece())
-                tempY=tempY-1
-        self.gamePhase=2
+                tempY = tempY - 1
+        self.gamePhase = 2
 
     def checkDone(self):
         complete = False
@@ -267,9 +273,10 @@ class Board:
                     if self.currentPiece == None:
                         self.currentPiece = self.selectionPaneTiles[k].getPiece()
                     else:
-                        if self.movingPiece and self.currentPiece.toString() == self.selectionPaneTiles[k].getFlag():
+                        if self.currentPiece.toString() == self.selectionPaneTiles[k].getFlag():
                             self.selectionPaneTiles[k].setPiece(self.currentPiece)
-                            self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] + 1
+                            if self.movingPiece:
+                                self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] + 1
                             self.currentPiece = None
                             self.movingPiece = False
                 if 'exit' in self.selectionPaneTiles[k].handleEvent(event):
