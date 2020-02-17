@@ -36,9 +36,13 @@ class Board:
         self.selectionPaneTiles = self.generateSelectionPane()
         #holding piece
         self.currentPiece = None
+        self.pieceRow = None
+        self.pieceCol = None
         #moving piece
         self.movingPiece = False
+        #done button
         self.doneButton = self.generateDoneButton()
+        #record game phase
         self.gamePhase = 1
 
     def getGamePhase():
@@ -69,11 +73,11 @@ class Board:
         return layout
 
     def generateTiles(self):
-        tiles=[]
+        tiles = []
         for j in range(self.numRow):
-            x=[]
+            x = []
             for i in range(self.numCol):
-                if j>=6:
+                if j >= 6:
                     x.append(Button(i * self.width, (j + 1) * self.height, self.width, self.height, transparent = True))
                 else:
                      x.append(Button(i * self.width, j * self.height, self.width, self.height, transparent = True))
@@ -126,7 +130,7 @@ class Board:
         elif piece == "Commander":
             spawn = Commander(alliance, pos)
         elif piece == "Engineer":
-            spawn = Engineer(0, pos)
+            spawn = Engineer(alliance, pos)
 
         return spawn
 
@@ -135,7 +139,7 @@ class Board:
 
     def genAiPieces(self):
         for j in range(self.numCol):
-            tempY = 11; # -1 for each iteration to simulate mirroring
+            tempY = 11 # -1 for each iteration to simulate mirroring
             for i in range(6):
                 if self.tiles[tempY][j].getPiece() != None:
                     self.tiles[i][j].setPiece(self.spawnPiece(1, self.tiles[tempY][j].getPiece().toString(), self.tiles[i][j].getPos()))
@@ -147,9 +151,9 @@ class Board:
         if self.currentPiece == None:
             for item in self.pieceData:
                 if self.pieceData[item][0] == 0:
-                    complete = True;
+                    complete = True
                 else:
-                    complete = False;
+                    complete = False
             if complete == True:
                 self.genAiPieces()
         return complete
@@ -196,10 +200,10 @@ class Board:
             cursorImg = pygame.image.load(self.currentPiece.getPath())
             surface.blit(cursorImg, tuple(x + y for x, y in zip(mousePos, (-25,-25))))
 
-        if self.gamePhase==1:
+        if self.gamePhase == 1:
             self.doneButton.draw(surface)
 
-    def checkAvailablePlacement(self,row,col,piece):
+    def checkAvailablePlacement(self, row, col, piece):
         """check if piece placement is vailble"""
         if row < 6:
             #opposite territory
@@ -215,51 +219,100 @@ class Board:
             return False
         if piece.toString() == "Grenade" and row == 6:
             #grenade cannot be placed at 1st row
-                return False
+            return False
         return True
+
+    def checkAvailableMovement(self, row, col, piece, pieceRow, pieceCol):
+        """check if movement is vailable"""
+        action = None   #action is either "attack" or "move" or None for invalid action
+        #pos = (row, col)
+        ul = (pieceRow - 1, pieceCol - 1) #upperleft
+        up = (pieceRow - 1, pieceCol)     #up
+        ur = (pieceRow - 1, pieceCol + 1) #upperright
+        lf = (pieceRow, pieceCol - 1)     #left
+        rg = (pieceRow, pieceCol + 1)     #right
+        dl = (pieceRow + 1, pieceCol - 1) #downleft
+        dw = (pieceRow + 1, pieceCol)     #down
+        dr = (pieceRow + 1, pieceCol + 1) #downright
+        if piece.toString() == "Landmine" or piece.toString() == "Flag":
+            #landmine and flag cannot be move
+            return False
+        #if currently on camp
+        if self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+            if self.tiles[row][col].getPiece() == None:
+                action = "move"
+            elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                action = "attack"
+            elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
+                action = None   #invalid
+        #if moving to camp
+        elif self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+            if self.tiles[row][col].getPiece() == None:
+                action = "move"
+            else:
+                action = None
+        #horizontal and vertical movement
+        elif up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col):
+            if self.tiles[row][col].getPiece() == None:
+                action = "move"
+            elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                action = "attack"
+            elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
+                action = None   #invalid
+        else:
+            action = None
+
+        return action
 
     def handleEvent(self, event):
         """handle mouse click"""
+        #handle event on board tiles
         for j in range(self.numCol):
             for i in range(self.numRow):
                 outline_tile = False
                 outlineColor_tile = None
+                #if is hovering on button
                 if 'hover' in self.tiles[i][j].handleEvent(event):
-                    #if is hovering on button
                     outline_tile = True
-                    if self.currentPiece != None:
-                        if self.checkAvailablePlacement(i,j,self.currentPiece):
-                            outlineColor_tile = self.green
+                    if self.gamePhase == 1:
+                        if self.currentPiece != None:
+                            if self.checkAvailablePlacement(i,j,self.currentPiece):
+                                outlineColor_tile = self.green
+                            else:
+                                outlineColor_tile = self.red
                         else:
-                            outlineColor_tile = self.red
-                    else:
-                        outlineColor_tile = self.black
+                            outlineColor_tile = self.black
+                #if button is clicked
                 if 'down' in self.tiles[i][j].handleEvent(event):
-                    #if button is clicked
                     outline_tile = True
                     outlineColor_tile = self.blue
+                #if button is clicked & released
                 if 'click' in self.tiles[i][j].handleEvent(event):
-                    #if button is clicked & released
-                    if self.currentPiece == None:
-                        if self.tiles[i][j].getPiece() != None:
-                            #take the piece if the tile already contain a piece
-                            self.currentPiece = self.tiles[i][j].getPiece()
-                            self.tiles[i][j].setPiece(None)
-                            self.movingPiece = True
-                    else:
-                        if self.tiles[i][j].getPiece() == None:
-                            #place the piece if the tile does not contain a piece
-                            if self.checkAvailablePlacement(i,j,self.currentPiece):
-                                self.tiles[i][j].setPiece(self.currentPiece)
-                                if not self.movingPiece:
-                                    self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] - 1
-                                self.currentPiece = None
-                                self.movingPiece = False
+                    #pieces placement phase
+                    if self.gamePhase == 1:
+                        if self.currentPiece == None:
+                            if self.tiles[i][j].getPiece() != None:
+                                #take the piece if the tile already contain a
+                                #piece
+                                self.currentPiece = self.tiles[i][j].getPiece()
+                                self.tiles[i][j].setPiece(None)
+                                self.movingPiece = True
+                        else:
+                            if self.tiles[i][j].getPiece() == None:
+                                #place the piece if the tile does not contain a
+                                #piece
+                                if self.checkAvailablePlacement(i,j,self.currentPiece):
+                                    self.tiles[i][j].setPiece(self.currentPiece)
+                                    if not self.movingPiece:
+                                        self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] - 1
+                                    self.currentPiece = None
+                                    self.movingPiece = False
+                #if mouse exited a button
                 if 'exit' in self.tiles[i][j].handleEvent(event):
-                    #if mouse exited a button
                     outline_tile = False
                 self.tiles[i][j].update(self.tiles[i][j].getColor(), outline_tile, outlineColor_tile)
 
+        #handle event on selection pane
         if self.gamePhase == 1:
             for k in range(len(self.selectionPaneTiles)):
                 outline_select = False
@@ -288,6 +341,7 @@ class Board:
                     outline_select = False
                 self.selectionPaneTiles[k].update(self.selectionPaneTiles[k].getColor(), outline_select, outlineColor_select)
 
+        #handle event on done button
         if self.gamePhase == 1:
             outline_done = False
             outlineColor_done = None

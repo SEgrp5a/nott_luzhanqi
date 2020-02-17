@@ -12,6 +12,9 @@ class Piece:
 
     def getPath(self):
         return self.path
+    
+    def getAlliance(self):
+        return self.alliance
 
 class NullPiece(Piece):
     pass
