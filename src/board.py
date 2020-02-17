@@ -52,7 +52,17 @@ class Board:
         #Set all as Soldier Station
         layout = [["SS" for i in range(self.numCol)] for j in range(self.numRow)]
 
-        #Setting Camp
+        #Set Railway
+        for i in range(1,self.numRow - 1):
+            layout[i][0] = "RW"
+            layout[i][4] = "RW"
+        for j in range(1, self.numCol - 1):
+            layout[1][j] = "RW"
+            layout[5][j] = "RW"
+            layout[6][j] = "RW"
+            layout[10][j] = "RW"
+
+        #Set Camp
         layout[2][1] = "CP"
         layout[2][3] = "CP"
         layout[3][2] = "CP"
@@ -64,7 +74,7 @@ class Board:
         layout[9][1] = "CP"
         layout[9][3] = "CP"
 
-        #Setting Headquarters
+        #Set Headquarters
         layout[0][1] = "HQ"
         layout[0][3] = "HQ"
         layout[11][1] = "HQ"
