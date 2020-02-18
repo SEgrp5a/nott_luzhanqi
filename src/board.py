@@ -41,7 +41,7 @@ class Board:
         #moving piece
         self.movingPiece = False
         #done button
-        self.doneButton = self.generateDoneButton()
+        self.doneButton = Button(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
         #record game phase
         self.gamePhase = 1
 
@@ -94,9 +94,9 @@ class Board:
             tiles.append(x)
         return tiles
 
+    #draws text and pieces beside board
     def generateSelectionPane(self):
         selectionPaneTiles = [None for _ in range(12)]
-        #draws text and pieces beside board
         x = 725
         y = 200
         i = 0
@@ -144,9 +144,6 @@ class Board:
 
         return spawn
 
-    def generateDoneButton(self):
-        return Button(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
-
     def genAiPieces(self):
         for j in range(self.numCol):
             tempY = 11 # -1 for each iteration to simulate mirroring
@@ -168,8 +165,8 @@ class Board:
                 self.genAiPieces()
         return complete
 
+    #Draw the entire interface
     def draw(self,surface):
-        """Draw the entire interface"""
         #Draw board
         surface.blit(self.brdImg,(0,0))
         #Draw tiles
@@ -213,8 +210,8 @@ class Board:
         if self.gamePhase == 1:
             self.doneButton.draw(surface)
 
+    #check if piece placement is vailble
     def checkAvailablePlacement(self, row, col, piece):
-        """check if piece placement is vailble"""
         if row < 6:
             #opposite territory
             return False
@@ -232,8 +229,8 @@ class Board:
             return False
         return True
 
+    #check if movement is vailable
     def checkAvailableMovement(self, row, col, piece, pieceRow, pieceCol):
-        """check if movement is vailable"""
         action = None   #action is either "attack" or "move" or None for invalid action
         #pos = (row, col)
         ul = (pieceRow - 1, pieceCol - 1) #upperleft
@@ -246,8 +243,7 @@ class Board:
         dw = (pieceRow + 1, pieceCol)     #down
         dr = (pieceRow + 1, pieceCol + 1) #downright
         if piece.toString() == "Landmine" or piece.toString() == "Flag":
-            #landmine and flag cannot be move
-            return False
+            return False    #landmine and flag cannot be move
         #if no move
         if og == (row, col):
             action = "move"
@@ -288,8 +284,8 @@ class Board:
 
         return action
 
+    #handle mouse click
     def handleEvent(self, event):
-        """handle mouse click"""
         #handle event on board tiles
         for j in range(self.numCol):
             for i in range(self.numRow):
@@ -298,6 +294,7 @@ class Board:
                 #if is hovering on button
                 if 'hover' in self.tiles[i][j].handleEvent(event):
                     outline_tile = True
+                    #setup phase
                     if self.gamePhase == 1:
                         if self.currentPiece != None:
                             if self.checkAvailablePlacement(i,j,self.currentPiece):
@@ -306,6 +303,7 @@ class Board:
                                 outlineColor_tile = self.red
                         else:
                             outlineColor_tile = self.black
+                    #play phase
                     if self.gamePhase == 2:
                         if self.currentPiece != None:
                             if self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol) != None:
@@ -339,8 +337,7 @@ class Board:
                                     self.movingPiece = False
                     #playing phase
                     elif self.gamePhase == 2:
-                        #take the piece if the tile already contain a
-                        #piece(except for landmine and flag)
+                        #take the piece if the tile already contain a piece(except for landmine and flag)
                         if self.currentPiece == None:
                             if self.tiles[i][j].getPiece() != None and self.tiles[i][j].getPiece().toString() != "Landmine" and self.tiles[i][j].getPiece().toString() != "Flag":
                                 self.currentPiece = self.tiles[i][j].getPiece()
