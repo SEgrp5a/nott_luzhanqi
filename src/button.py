@@ -20,7 +20,7 @@ class Button():
         self.hovering = False
         #piece is an object of Piece or it's subclasses
         self.piece = None
-        #flag is the name of piece the object originally contain (only used in selection pane)
+        #flag is the properties of the tile
         self.flag = None
 
     def handleEvent(self,event):
@@ -111,7 +111,7 @@ class Button():
             surface.blit(s, (self.x, self.y))
         
         if self.text != '':
-            font = pygame.font.SysFont('comicsans', 12)
+            font = pygame.font.SysFont('comicsans', 40)
             text = font.render(self.text, 1, self.textColor)
             #Position the text on the center of the button
             surface.blit(text, (self.x + (self.width / 2 - text.get_width() / 2), self.y + (self.height / 2 - text.get_height() / 2)))
@@ -122,4 +122,28 @@ class Button():
 
         if self.outline:
             pygame.draw.rect(surface, self.outlineColor, self.rect, 2)   #draw outline
-           
+
+class SelectionPaneButton(Button):
+    def __init__(self, x, y, width, height, color=(...), transparent=False, outline=False, outlineColor=(...), text='', textColor=(...), nPieces=0):
+        self.pieces = []
+        self.nPieces = nPieces
+        return super().__init__(x, y, width, height, color=color, transparent=transparent, outline=outline, outlineColor=outlineColor, text=text, textColor=textColor)
+
+    def getPiece(self):
+        return self.pieces[0]
+
+    def addPiece(self, piece):
+        if len(self.pieces) <= self.nPieces and (self.pieces == [] or self.pieces[0].toString() == piece.toString()):
+            #only can add when empty or is same piece
+            self.pieces.append(piece)
+
+    def removePiece(self):
+        if len(self.pieces) > 0:
+            self.pieces.pop()
+
+    def draw(self, surface):
+        super().draw(surface)
+
+        if self.pieces != []:
+            image = pygame.image.load(self.pieces[0].getPath())
+            surface.blit(image, (self.x + (self.width / 2 - image.get_width() / 2), self.y + (self.height / 2 - image.get_height() / 2)))
