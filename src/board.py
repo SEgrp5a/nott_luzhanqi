@@ -17,9 +17,12 @@ class Board:
                     winner = piece1
                 else:
                     winner = piece2
-            #if Bomb lands on Landmine
-            elif piece1.toString() == "Landmine" and piece2.toString() == "Bomb" or piece1.toString() == "Bomb" and piece2.toString() == "Landmine":
-                print("Both Landmine and Bomb are GONE!\n")
+            #if Grenade attacks any piece
+            elif piece1.toString() == "Grenade" or piece2.toString() == "Grenade":
+                print("Both pieces have been taken") 
+            #if Grenade lands on Landmine
+            elif piece1.toString() == "Landmine" and piece2.toString() == "Grenade" or piece1.toString() == "Grenade" and piece2.toString() == "Landmine":
+                print("Both Landmine and Grenade are GONE!\n")
             #every other pieces of different or same rank battling
             elif piece1.rank < piece2.rank:
                 print(piece1.toString() + " has taken " + piece2.toString() +"!\n")
