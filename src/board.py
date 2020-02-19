@@ -247,41 +247,79 @@ class Board:
         #if no move
         if og == (row, col):
             action = "move"
+        #if engineer on railway
+        #if on railway
+        if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW":
+            if pieceRow == row:   #check if same horizontal railway
+                distance = pieceCol - col
+                for hOffset in range(0, abs(distance)):
+                    if self.layout[row][pieceCol - (int(distance / abs(distance)) * hOffset)] == "RW":
+                        if self.tiles[row][col].getPiece() == None:
+                            if self.tiles[row][pieceCol - (int(distance / abs(distance)) * hOffset)].getPiece() == None:
+                                action = "move"
+                            elif self.tiles[row][pieceCol - (int(distance / abs(distance)) * hOffset)].getPiece() != None:
+                                action = None
+                                break
+                        elif self.tiles[row][col].getPiece() != None and self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                            if self.tiles[row][pieceCol - (int(distance / abs(distance)) * hOffset)].getPiece() == None:
+                                action = "attack"
+                            elif self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece() != None:
+                                action = None
+                                break
+                    else:
+                        action = None
+                        break
+            elif pieceCol == col and not (col == 1 or col == 3): #check if same vertical railway and not blocked by mountain range
+                distance = pieceRow - row
+                for vOffset in range(0, abs(distance)):
+                    if self.layout[pieceRow - (int(distance / abs(distance)) * vOffset)][col] == "RW":
+                        if self.tiles[row][col].getPiece() == None:
+                            if self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece() == None:
+                                action = "move"
+                            elif self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece() != None:
+                                action = None
+                                break
+                        elif self.tiles[row][col].getPiece() != None and self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                            if self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece() == None:
+                                action = "attack"
+                            elif self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece() != None:
+                                action = None
+                                break
+                    else:
+                        action = None
+                        break
         #if currently on camp
-        elif self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+        if self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
             if self.tiles[row][col].getPiece() == None:
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
                 action = "attack"
             elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
-                action = None   #invalid
+                action = None
         #if moving to camp
-        elif self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+        if self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
             if self.tiles[row][col].getPiece() == None:
                 action = "move"
             else:
                 action = None
         #horizontal movement
-        elif lf == (row, col) or rg == (row, col):
+        if lf == (row, col) or rg == (row, col):
             if self.tiles[row][col].getPiece() == None:
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
                 action = "attack"
             elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
-                action = None   #invalid
+                action = None
         #vertical movement
-        elif up == (row, col) or dw == (row, col):
-            if up == (5, 1) or up == (5, 3) or dw == (6, 1) or dw == (6, 3):
-                action == None  #invalid
+        if up == (row, col) or dw == (row, col):
+            if up == (5, 1) or up == (5, 3) or dw == (6, 1) or dw == (6, 3):    #check if not blocked by mountain range
+                action == None
             elif self.tiles[row][col].getPiece() == None:
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
                 action = "attack"
             elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
-                action = None   #invalid
-        else:
-            action = None
-
+                action = None
         return action
 
     #handle mouse click
