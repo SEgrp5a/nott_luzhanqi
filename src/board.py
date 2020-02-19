@@ -143,16 +143,17 @@ class Board:
         self.gamePhase = 2
 
     def checkDone(self):
-        complete = False
+        complete=False
         if self.currentPiece == None:
-            for item in self.pieceData:
-                if self.pieceData[item][0] == 0:
-                    complete = True;
+            for k in self.pieceData:
+                if self.pieceData[k][0] == 0:
+                    complete=True;
                 else:
-                    complete = False;
-            if complete == True:
+                    # can do a pop-up to let user know not all pieces are set
+                    break
+            if complete==True:
                 self.genAiPieces()
-        return complete
+
 
     def draw(self,surface):
         """Draw the entire interface"""
