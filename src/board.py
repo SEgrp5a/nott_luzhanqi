@@ -4,6 +4,39 @@ from button import *
 from pieces import *
 
 class Board:
+    def referee(piece1, piece2):
+        winner = None
+        #checking alliances
+        if piece1.alliance == piece2.alliance:
+            print('You can not attack your own piece!\n')
+        elif piece1.toString() != "Flag" and piece2.toString() != "Flag":
+            #if engineer steps on a landmine
+            if piece1.toString() == "Landmine" and piece2.toString() == "Engineer" or piece1.toString() == "Engineer" and piece2.toString() == "Landmine":
+                print("Engineer has disarmed the landmine!\n")
+                if piece1.toString() == "Engineer":
+                    winner = piece1
+                else:
+                    winner = piece2
+            #if Bomb lands on Landmine
+            elif piece1.toString() == "Landmine" and piece2.toString() == "Bomb" or piece1.toString() == "Bomb" and piece2.toString() == "Landmine":
+                print("Both Landmine and Bomb are GONE!\n")
+            #every other pieces of different or same rank battling
+            elif piece1.rank < piece2.rank:
+                print(piece1.toString() + " has taken " + piece2.toString() +"!\n")
+                winner = piece1
+            elif piece2.rank < piece1.rank:
+                print(piece2.toString() + " has taken " + piece1.toString() + "!\n")
+                winner = piece2
+            elif piece2.rank == piece1.rank:
+                print(piece2.toString() + " and " + piece1.toString() + " have both been taken!\n")
+        #if Flag is captured
+        elif piece1.toString() == "Flag":
+            print(piece2.toString() + " has captured the Flag\n")
+        elif piece2.toString() == "Flag":
+            print(piece1.toString() + " has captured the Flag\n")
+
+        return winner
+
     def __init__(self,width,height,numRow,numCol):
         self.red = pygame.Color(255,0,0)
         self.green = pygame.Color(0,255,0)
@@ -347,10 +380,10 @@ class Board:
                         else:
                             action = self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol)
                             if action == "attack":
-                                #attackPiece = self.currentPiece
-                                #defendPiece = self.tiles[i][j].getPiece()
-                                #winner = referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
-                                #self.tiles[i][j].setPiece(winner)
+                                attackPiece = self.currentPiece
+                                defendPiece = self.tiles[i][j].getPiece()
+                                winner = referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
+                                self.tiles[i][j].setPiece(winner)
                                 self.currentPiece = None
                                 self.pieceRow = None
                                 self.pieceCol = None
