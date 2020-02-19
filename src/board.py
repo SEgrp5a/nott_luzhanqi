@@ -4,7 +4,7 @@ from button import *
 from pieces import *
 
 class Board:
-    def referee(piece1, piece2):
+    def referee(self,piece1, piece2):
         winner = None
         #checking alliances
         if piece1.alliance == piece2.alliance:
@@ -382,7 +382,7 @@ class Board:
                             if action == "attack":
                                 attackPiece = self.currentPiece
                                 defendPiece = self.tiles[i][j].getPiece()
-                                winner = referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
+                                winner = self.referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
                                 self.tiles[i][j].setPiece(winner)
                                 self.currentPiece = None
                                 self.pieceRow = None
