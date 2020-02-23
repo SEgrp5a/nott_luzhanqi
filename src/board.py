@@ -40,6 +40,7 @@ class Board:
             elif piece2.rank == piece1.rank:
                 print(piece2.toString() + " and " + piece1.toString() + " have both been taken!\n")
                 loser = piece1
+                loser.alliance=0
         #if Flag is captured
         elif piece1.toString() == "Flag":
             print(piece2.toString() + " has captured the Flag\n")
