@@ -6,6 +6,7 @@ from pieces import *
 class Board:
     def referee(self,piece1, piece2):
         winner = None
+        loser = None
         #checking alliances
         if piece1.alliance == piece2.alliance:
             print('You can not attack your own piece!\n')
@@ -15,28 +16,40 @@ class Board:
                 print("Engineer has disarmed the landmine!\n")
                 if piece1.toString() == "Engineer":
                     winner = piece1
+                    loser = piece2
                 else:
                     winner = piece2
+                    loser = piece1
             #if Grenade attacks any piece
             elif piece1.toString() == "Grenade" or piece2.toString() == "Grenade":
-                print("Both pieces have been taken") 
+                print("Both pieces have been taken")
+                loser = piece1
             #if Grenade lands on Landmine
             elif piece1.toString() == "Landmine" and piece2.toString() == "Grenade" or piece1.toString() == "Grenade" and piece2.toString() == "Landmine":
                 print("Both Landmine and Grenade are GONE!\n")
+                loser = piece1
             #every other pieces of different or same rank battling
             elif piece1.rank < piece2.rank:
                 print(piece1.toString() + " has taken " + piece2.toString() +"!\n")
                 winner = piece1
+                loser = piece2
             elif piece2.rank < piece1.rank:
                 print(piece2.toString() + " has taken " + piece1.toString() + "!\n")
                 winner = piece2
+                loser = piece1
             elif piece2.rank == piece1.rank:
                 print(piece2.toString() + " and " + piece1.toString() + " have both been taken!\n")
+                loser = piece1
         #if Flag is captured
         elif piece1.toString() == "Flag":
             print(piece2.toString() + " has captured the Flag\n")
         elif piece2.toString() == "Flag":
             print(piece1.toString() + " has captured the Flag\n")
+
+        if loser.alliance == 0: # only draw my own piece
+            self.pieceData[loser.toString()][0]=self.pieceData[loser.toString()][0]+1
+
+        print(loser.alliance)
 
         return winner
 
