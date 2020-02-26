@@ -284,7 +284,21 @@ class Board:
                         rw_adj.sort()   #sort to improve DFS consistency
                         railwayGraph[index] = rw_adj
                         index = index + 1
-            
+            #search for path to dest using DFS
+            #DFS algorithm referenced from https://www.koderdojo.com/blog/depth-first-search-in-python-recursive-and-non-recursive-programming
+            def dfs(graph, start):
+                stack = [start]
+                path = []
+                while stack:
+                    vertex = stack.pop()
+                    path.append(vertex)
+                    for neighbour in graph[vertex]:
+                        if neighbour in path:
+                            continue    #ignore discovered vertice
+                        if neighbour in stack:
+                            continue    #ignore discovered vertice
+                        stack.append(neighbour)
+                return path
         #if on railway
         if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW":
             if pieceRow == row:   #check if same horizontal railway
