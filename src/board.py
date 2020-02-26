@@ -248,6 +248,43 @@ class Board:
         if og == (row, col):
             action = "move"
         #if engineer on railway
+        if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
+            railwayGraph = {}   #will contain adjacent nodes of the pos ({0 : [1, 10], ...})
+            index = 0   #label the nodes (key for railwayGraph)
+            railwayList = []    #will contain all railway counting up to down, left to right ([(row, col), ...])
+            #initialise railwayList
+            for j in range(self.numCol):
+                for i in range(self.numRow):
+                    if self.layout[i][j] == "RW":
+                        railwayList.append((i,j))
+            #generate the graph of railways
+            for j in range(self.numCol):
+                for i in range(self.numRow):
+                    if self.layout[i][j] == "RW":
+                        directions = {"right" : (i, j + 1), 
+                                      "down" : (i + 1, j), 
+                                      "left" : (i, j - 1), 
+                                      "up" : (i - 1, j)}  #save adjacent tiles
+                        rw_adj = [] #save adjacent railway tiles
+                        for direction in directions:  #loop all 4 directions
+                            if directions[direction][0] >= 0 and directions[direction][0] < self.numRow and directions[direction][1] >= 0 and directions[direction][1] < self.numCol and layout[directions[direction][0]][directions[direction][1]] == "RW" :   #check if adjacent tiles is railway
+                                rw_adj[adj_no] = railwayList.index(direction)
+                        if index == 11:
+                            if 12 in rw_adj:
+                                rw_adj.remove(12)
+                        if index == 12:
+                            if 11 in rw_adj:
+                                rw_adj.remove(11)
+                        if index == 19:
+                            if 20 in rw_adj:
+                                rw_adj.remove(20)
+                        if index == 20:
+                            if 19 in rw_adj:
+                                rw_adj.remove(19)
+                        rw_adj.sort()   #sort to improve DFS consistency
+                        railwayGraph[index] = rw_adj
+                        index = index + 1
+            
         #if on railway
         if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW":
             if pieceRow == row:   #check if same horizontal railway
