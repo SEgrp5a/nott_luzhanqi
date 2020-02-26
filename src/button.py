@@ -77,7 +77,7 @@ class Button():
         self.transparent = transparent  #transparent is a boolean
         
     #set color of outline
-    def setOutline(self,outline,outlineColor):
+    def setOutline(self,outline,outlineColor = None):
         self.outline = outline
         self.outlineColor = outlineColor
 
@@ -116,7 +116,10 @@ class Button():
 
         #draw piece
         if self.piece != None:
-            image = pygame.image.load(self.piece.getPath())
+            if self.piece.getAlliance() == 0:   #if is player piece
+                image = pygame.image.load(self.piece.getPath())
+            elif self.piece.getAlliance() == 1: #if is AI piece
+                image = pygame.image.load("bin\\Piece Shadow.png")
             surface.blit(image, (self.x + (self.width / 2 - image.get_width() / 2), self.y + (self.height / 2 - image.get_height() / 2)))
 
         #draw outline
