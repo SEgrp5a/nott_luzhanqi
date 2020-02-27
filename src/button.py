@@ -147,6 +147,6 @@ class SelectionPaneButton(Button):
     def draw(self, surface):
         super().draw(surface)
 
-        if self.pieces != []:
+        if self.pieces:
             image = pygame.image.load(self.pieces[0].getPath())
             surface.blit(image, (self.x + (self.width / 2 - image.get_width() / 2), self.y + (self.height / 2 - image.get_height() / 2)))
