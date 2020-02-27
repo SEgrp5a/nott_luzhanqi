@@ -320,6 +320,20 @@ class Board:
 
         return action
 
+    #AI random move
+    def AImove(self):
+        Turn = True
+        #for Turn == True:
+            #rand_row = random.uniform(0,11)
+            #rand_column = random.uniform(0,4)
+        print('it is now AI turn')
+        #tile[0,row][0,column] top left corner AND player is Alliance 0 , AI is alliance 1
+        print('this is a ' + self.tiles[0][0].getPiece().toString() + '\n')
+        alliance = self.tiles[0][0].getPiece().getAlliance()
+        print(alliance)
+
+        return 0
+
     #handle mouse click
     def handleEvent(self, event):
         #handle event on board tiles
@@ -352,8 +366,6 @@ class Board:
                 if 'down' in self.tiles[i][j].handleEvent(event):
                     outline_tile = True
                     outlineColor_tile = self.blue
-                #if button is clicked & released
-                if 'click' in self.tiles[i][j].handleEvent(event):
                     #setup phase
                     if self.gamePhase == 1:
                         #take the piece if the tile already contain a piece
@@ -390,11 +402,15 @@ class Board:
                                 self.currentPiece = None
                                 self.pieceRow = None
                                 self.pieceCol = None
+                                #whenever the player attackes.. then the AI will initiate its turn 
+                                self.AImove()
                             elif action == "move":
                                 self.tiles[i][j].setPiece(self.currentPiece)
                                 self.currentPiece = None
                                 self.pieceRow = None
                                 self.pieceCol = None
+                                #whenever the player moves.. then the AI will initiate its turn 
+                                self.AImove()
                 #if mouse exited a button
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
@@ -445,6 +461,9 @@ class Board:
             #if button is clicked & released
             if 'click' in self.doneButton.handleEvent(event):
                 self.checkDone()
+                print('You make the first move')
+                #Bool variable to check turns
+                #aiTurn = False
             #if mouse exited a button
             if 'exit' in self.doneButton.handleEvent(event):
                 outline_done = False
