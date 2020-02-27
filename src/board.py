@@ -449,20 +449,7 @@ class Board:
                                 self.pieceCol = j
                                 self.tiles[i][j].setPiece(None)
                         else:
-                            action = self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol)
-                            if action == "attack":
-                                attackPiece = self.currentPiece
-                                defendPiece = self.tiles[i][j].getPiece()
-                                winner = self.referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
-                                self.tiles[i][j].setPiece(winner)
-                                self.currentPiece = None
-                                self.pieceRow = None
-                                self.pieceCol = None
-                            elif action == "move":
-                                self.tiles[i][j].setPiece(self.currentPiece)
-                                self.currentPiece = None
-                                self.pieceRow = None
-                                self.pieceCol = None
+                            self.takeAction(self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j))
                 #if mouse exited a button
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
@@ -524,6 +511,7 @@ class Board:
                 outline_done = False
             self.doneButton.update(self.doneButton.getColor(),outline_done,outlineColor_done)
 
+    #referee will decide on the result of an attack action
     def referee(self,piece1, piece2):
         winner = None
         #checking alliances
@@ -559,3 +547,18 @@ class Board:
             print(piece1.toString() + " has captured the Flag\n")
 
         return winner
+
+    #called whenever an action is executed
+    def takeAction(self, action, dest):
+        replacement = self.currentPiece
+        i = dest[0]
+        j = dest[1]
+        if action:
+            if action == "attack":
+                attackPiece = self.currentPiece
+                defendPiece = self.tiles[i][j].getPiece()
+                replacement = self.referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
+            self.tiles[i][j].setPiece(replacement)
+            self.currentPiece = None
+            self.pieceRow = None
+            self.pieceCol = None
