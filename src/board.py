@@ -1,5 +1,6 @@
 import pygame
 import operator
+import random
 from button import *
 from pieces import *
 
@@ -322,15 +323,19 @@ class Board:
 
     #AI random move
     def AImove(self):
-        Turn = True
-        #for Turn == True:
-            #rand_row = random.uniform(0,11)
-            #rand_column = random.uniform(0,4)
         print('it is now AI turn')
+        #Turn = True
+        #for Turn == True:
+        rand_row = 5 #random.randint(0,11)
+        rand_column = 0 #random.randint(0,4)
+        randomPiece = self.tiles[rand_row][rand_column].getPiece() 
+        if randomPiece.getAlliance() == 1:
+            self.tiles[6][0].setPiece(randomPiece)
+            self.tiles[rand_row][rand_column].setPiece(None)
         #tile[0,row][0,column] top left corner AND player is Alliance 0 , AI is alliance 1
-        print('this is a ' + self.tiles[0][0].getPiece().toString() + '\n')
-        alliance = self.tiles[0][0].getPiece().getAlliance()
-        print(alliance)
+        # print('this is a ' + piece.toString() + '\n')
+        # alliance = piece.getAlliance()
+        # print(alliance)
 
         return 0
 
