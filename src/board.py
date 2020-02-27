@@ -36,6 +36,8 @@ class Board:
         self.selectionPaneTiles = self.generateSelectionPane()
         #holding piece
         self.currentPiece = None
+        self.pieceRow = None
+        self.pieceCol = None
         #moving piece
         self.movingPiece = False
         #done button
@@ -49,6 +51,16 @@ class Board:
     def generateLayout(self):
         #Set all as Soldier Station
         layout = [["SS" for i in range(self.numCol)] for j in range(self.numRow)]
+
+        #Set Railway
+        for i in range(1,self.numRow - 1):
+            layout[i][0] = "RW"
+            layout[i][4] = "RW"
+        for j in range(1, self.numCol - 1):
+            layout[1][j] = "RW"
+            layout[5][j] = "RW"
+            layout[6][j] = "RW"
+            layout[10][j] = "RW"
 
         #Set Camp
         layout[2][1] = "CP"
@@ -136,7 +148,7 @@ class Board:
         for j in range(self.numCol):
             tempY = 11 # -1 for each iteration to simulate mirroring
             for i in range(6):
-                if self.tiles[tempY][j].getPiece() != None:
+                if self.tiles[tempY][j].getPiece():
                     self.tiles[i][j].setPiece(self.spawnPiece(1, self.tiles[tempY][j].getPiece().toString(), self.tiles[i][j].getPos()))
                 tempY = tempY - 1
         self.gamePhase = 2
@@ -153,7 +165,6 @@ class Board:
             if complete==True:
                 self.genAiPieces()
 
-
     #Draw the entire interface
     def draw(self,surface):
         #Draw board
@@ -162,7 +173,6 @@ class Board:
         for j in range(self.numCol):
             for i in range(self.numRow):
                 self.tiles[i][j].draw(surface)
-
         #Only draw Selection Pane on setup phase
         #Draw Selection Pane
         #Draw Selection Pane Title
@@ -175,8 +185,6 @@ class Board:
         k = 0
         for item in self.pieceData:
             #Draw piece image
-            if (self.pieceData[item][0] == 0):
-                self.selectionPaneTiles[k].setPiece(None)
             self.selectionPaneTiles[k].draw(surface)
             #Draw Selection Pane piece's name
             textObj = pygame.font.Font("bin\OpenSans.ttf", 18)
@@ -191,7 +199,7 @@ class Board:
             surface.blit(numTextSurfaceObj, numTextRectObj)
             k = k + 1
 
-        if self.currentPiece != None:
+        if self.currentPiece:
             mousePos = pygame.mouse.get_pos()
             cursorImg = pygame.image.load(self.currentPiece.getPath())
             surface.blit(cursorImg, tuple(x + y for x, y in zip(mousePos, (-25,-25))))
@@ -218,6 +226,168 @@ class Board:
             return False
         return True
 
+    #check if movement is vailable
+    def checkAvailableMovement(self, row, col, piece, pieceRow, pieceCol):
+        action = None   #action is either "attack" or "move" or None for invalid action
+        #pos = (row, col)
+        ul = (pieceRow - 1, pieceCol - 1) #upperleft
+        up = (pieceRow - 1, pieceCol)     #up
+        ur = (pieceRow - 1, pieceCol + 1) #upperright
+        lf = (pieceRow, pieceCol - 1)     #left
+        og = (pieceRow, pieceCol)         #original
+        rg = (pieceRow, pieceCol + 1)     #right
+        dl = (pieceRow + 1, pieceCol - 1) #downleft
+        dw = (pieceRow + 1, pieceCol)     #down
+        dr = (pieceRow + 1, pieceCol + 1) #downright
+        if piece.toString() == "Landmine" or piece.toString() == "Flag":
+            return False    #landmine and flag cannot be move
+        #if no move
+        if og == (row, col):
+            action = "move"
+        #if engineer on railway
+        if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
+            railwayGraph = {}   #will contain adjacent nodes of the pos ({0 : [1, 10], ...})
+            index = 0   #label the nodes (key for railwayGraph)
+            railwayList = []    #will contain all railway counting up to down, left to right ([(row, col), ...]) (railwayList[vertex] will have result for the location of railway)
+            #initialise railwayList
+            for j in range(self.numCol):
+                for i in range(self.numRow):
+                    if self.layout[i][j] == "RW":
+                        railwayList.append((i,j))
+            #generate the graph of railways
+            for j in range(self.numCol):
+                for i in range(self.numRow):
+                    if self.layout[i][j] == "RW":
+                        directions = {"right" : (i, j + 1),
+                                      "down" : (i + 1, j),
+                                      "left" : (i, j - 1),
+                                      "up" : (i - 1, j)}  #save adjacent tiles
+                        rw_adj = [] #save adjacent railway tiles
+                        for direction in directions:  #loop all 4 directions
+                            if directions[direction][0] >= 0 and directions[direction][0] < self.numRow and directions[direction][1] >= 0 and directions[direction][1] < self.numCol and self.layout[directions[direction][0]][directions[direction][1]] == "RW" :   #check if adjacent tiles is railway
+                                rw_adj.append(railwayList.index(directions[direction]))
+                        if index == 11:
+                            if 12 in rw_adj:
+                                rw_adj.remove(12)
+                        if index == 12:
+                            if 11 in rw_adj:
+                                rw_adj.remove(11)
+                        if index == 19:
+                            if 20 in rw_adj:
+                                rw_adj.remove(20)
+                        if index == 20:
+                            if 19 in rw_adj:
+                                rw_adj.remove(19)
+                        rw_adj.sort()   #sort to improve DFS consistency
+                        railwayGraph[index] = rw_adj
+                        index = index + 1
+            #search for path to dest using DFS
+            #DFS algorithm referenced from https://www.koderdojo.com/blog/depth-first-search-in-python-recursive-and-non-recursive-programming
+            def DFS(graph, start, dest):
+                stack = [start]
+                path = []
+                while stack:
+                    if dest in path:
+                        break   #return as soon as a path has been find
+                    vertex = stack.pop()
+                    if self.tiles[railwayList[vertex][0]][railwayList[vertex][1]].getPiece():
+                        if self.tiles[railwayList[vertex][0]][railwayList[vertex][1]].getPiece().getAlliance() != piece.getAlliance():
+                            path.append(vertex) #add to path if is opponent piece
+                        continue    #don't expand vertices with pieces on them
+                    path.append(vertex)
+                    for neighbour in graph[vertex]:
+                        if neighbour in path:
+                            continue    #ignore discovered vertices
+                        if neighbour in stack:
+                            continue    #ignore discovered vertices
+                        stack.append(neighbour)
+                return path
+            start = railwayList.index((pieceRow, pieceCol)) #get the corresponding vertices
+            dest = railwayList.index((row, col))    #get the corresponding vertices
+            path = DFS(railwayGraph, start, dest)
+            if dest in path:
+                if not self.tiles[row][col].getPiece():
+                    action = "move"
+                elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                    action = "attack"
+                elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
+                    action = None
+            else:
+                action = None
+        #if on railway
+        elif self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW":
+            if pieceRow == row:   #check if same horizontal railway
+                distance = pieceCol - col
+                for hOffset in range(0, abs(distance)):
+                    if self.layout[row][pieceCol - (int(distance / abs(distance)) * hOffset)] == "RW":
+                        if not self.tiles[row][col].getPiece():
+                            if not self.tiles[row][pieceCol - (int(distance / abs(distance)) * hOffset)].getPiece():
+                                action = "move"
+                            elif self.tiles[row][pieceCol - (int(distance / abs(distance)) * hOffset)].getPiece():
+                                action = None
+                                break
+                        elif self.tiles[row][col].getPiece() and self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                            if not self.tiles[row][pieceCol - (int(distance / abs(distance)) * hOffset)].getPiece():
+                                action = "attack"
+                            elif self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece():
+                                action = None
+                                break
+                    else:
+                        action = None
+                        break
+            elif pieceCol == col and not (col == 1 or col == 3): #check if same vertical railway and not blocked by mountain range
+                distance = pieceRow - row
+                for vOffset in range(0, abs(distance)):
+                    if self.layout[pieceRow - (int(distance / abs(distance)) * vOffset)][col] == "RW":
+                        if self.tiles[row][col].getPiece() == None:
+                            if not self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece():
+                                action = "move"
+                            elif self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece():
+                                action = None
+                                break
+                        elif self.tiles[row][col].getPiece() != None and self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                            if not self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece():
+                                action = "attack"
+                            elif self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece():
+                                action = None
+                                break
+                    else:
+                        action = None
+                        break
+        #if currently on camp
+        if self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+            if not self.tiles[row][col].getPiece():
+                action = "move"
+            elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                action = "attack"
+            elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
+                action = None
+        #if moving to camp
+        if self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+            if not self.tiles[row][col].getPiece():
+                action = "move"
+            else:
+                action = None
+        #horizontal movement
+        if lf == (row, col) or rg == (row, col):
+            if not self.tiles[row][col].getPiece():
+                action = "move"
+            elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                action = "attack"
+            elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
+                action = None
+        #vertical movement
+        if up == (row, col) or dw == (row, col):
+            if up == (5, 1) or up == (5, 3) or dw == (6, 1) or dw == (6, 3):    #check if not blocked by mountain range
+                action == None
+            elif not self.tiles[row][col].getPiece():
+                action = "move"
+            elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                action = "attack"
+            elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
+                action = None
+        return action
+
     #handle mouse click
     def handleEvent(self, event):
         #handle event on board tiles
@@ -230,8 +400,8 @@ class Board:
                     outline_tile = True
                     #setup phase
                     if self.gamePhase == 1:
-                        if self.currentPiece != None:
-                            if self.checkAvailablePlacement(i,j,self.currentPiece):
+                        if self.currentPiece:
+                            if self.checkAvailablePlacement(i,j,self.currentPiece) and not self.tiles[i][j].getPiece():
                                 outlineColor_tile = self.green
                             else:
                                 outlineColor_tile = self.red
@@ -239,8 +409,8 @@ class Board:
                             outlineColor_tile = self.black
                     #play phase
                     if self.gamePhase == 2:
-                        if self.currentPiece != None:
-                            if self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol) != None:
+                        if self.currentPiece:
+                            if self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol):
                                 outlineColor_tile = self.green
                             else:
                                 outlineColor_tile = self.red
@@ -255,14 +425,14 @@ class Board:
                     #setup phase
                     if self.gamePhase == 1:
                         #take the piece if the tile already contain a piece
-                        if self.currentPiece == None:
-                            if self.tiles[i][j].getPiece() != None:
+                        if not self.currentPiece:
+                            if self.tiles[i][j].getPiece():
                                 self.currentPiece = self.tiles[i][j].getPiece()
                                 self.tiles[i][j].setPiece(None)
                                 self.movingPiece = True
                         #place the piece if the tile does not contain a piece
                         else:
-                            if self.tiles[i][j].getPiece() == None:
+                            if not self.tiles[i][j].getPiece():
                                 if self.checkAvailablePlacement(i,j,self.currentPiece):
                                     self.tiles[i][j].setPiece(self.currentPiece)
                                     if not self.movingPiece:
@@ -273,7 +443,7 @@ class Board:
                     elif self.gamePhase == 2:
                         #take the piece if the tile already contain a piece(except for landmine and flag)
                         if self.currentPiece == None:
-                            if self.tiles[i][j].getPiece() != None and self.tiles[i][j].getPiece().toString() != "Landmine" and self.tiles[i][j].getPiece().toString() != "Flag":
+                            if self.tiles[i][j].getPiece() and self.tiles[i][j].getPiece().toString() != "Landmine" and self.tiles[i][j].getPiece().toString() != "Flag":
                                 self.currentPiece = self.tiles[i][j].getPiece()
                                 self.pieceRow = i
                                 self.pieceCol = j
@@ -306,14 +476,20 @@ class Board:
                 #if is hovering on button
                 if 'hover' in self.selectionPaneTiles[k].handleEvent(event):
                     outline_select = True
-                    outlineColor_select = self.black
+                    if self.currentPiece:
+                        if self.selectionPaneTiles[k].getFlag() == self.currentPiece.toString():
+                            outlineColor_select = self.green
+                        else:
+                            outlineColor_select = self.red
+                    else:
+                        outlineColor_select = self.black
                 #if button is clicked
                 if 'down' in self.selectionPaneTiles[k].handleEvent(event):
                     outline_select = True
                     outlineColor_select = self.blue
                 #if button is clicked & released
                 if 'click' in self.selectionPaneTiles[k].handleEvent(event):
-                    if self.currentPiece == None:
+                    if not self.currentPiece:
                         self.currentPiece = self.selectionPaneTiles[k].getPiece()
                         self.selectionPaneTiles[k].removePiece()
                     else:

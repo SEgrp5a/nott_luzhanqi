@@ -22,25 +22,26 @@ class Button():
         self.piece = None
         #flag is the properties of the tile
         self.flag = None
-
+       
+    #Event handler
     def handleEvent(self,event):
+        #if the current event is not a mouse event
         if event.type not in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONUP, pygame.MOUSEBUTTONDOWN):
-            #if the current event is not a mouse event
             return []
         events = []
 
         exited = False
+        #if mouse entered a button
         if not self.hovering and self.isOver(event.pos):
-            #if mouse entered a button
             self.hovering = True
             events.append('enter')
+        #if mouse exited a button
         if self.hovering and not self.isOver(event.pos):
-            #if mouse exited a button
             self.hovering = False
             exited = True
-
+            
+        #if event is happening on a button
         if self.isOver(event.pos):
-            #if event is happening on a button
             events.append('hover')
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.buttonDown = True
@@ -56,41 +57,36 @@ class Button():
 
         return events
     
+    #check if pos is inside button(including outline)
     def isOver(self, pos):
-        #check if pos is inside button(including outline)
         if pos[0] >= self.x and pos[0] <= self.x + self.width:
             if pos[1] >= self.y and pos[1] <= self.y + self.height:
                 return True     
         return False
-
+    
     def getPos(self):
-        #get button position
         return (self.x,self.y)
-
+    
     def getColor(self):
-        #get button color
-        return self.color
-
+        return self.color   #color is a tuple of size 3
+    
     def setColor(self,color):
-        #set color of button
-        self.color = color
-
+        self.color = color  #color is a tuple of size 3
+    
     def setTransparency(self, transparent):
-        #transparent is a boolean
-        self.transparent = transparent
-
-    def setOutline(self,outline,outlineColor):
-        #set color of outline
+        self.transparent = transparent  #transparent is a boolean
+        
+    #set color of outline
+    def setOutline(self,outline,outlineColor = None):
         self.outline = outline
         self.outlineColor = outlineColor
 
     def getPiece(self):
-        return self.piece
+        return self.piece   #piece is an object of Piece or it's subclasses
 
     def setPiece(self, piece):
-        #piece is an object of Piece or it's subclasses
         #set piece to None to remove piece
-        self.piece = piece
+        self.piece = piece  #piece is an object of Piece or it's subclasses
 
     def getFlag(self):
         return self.flag
@@ -98,30 +94,37 @@ class Button():
     def setFlag(self, flag):
         self.flag = flag
 
+    #update object properties
     def update(self,color,outline,outlineColor):
         self.setColor(color)
         self.setOutline(outline,outlineColor)
         
+    #Draw the button on the screen
     def draw(self,surface):
-        #Draw the button on the screen
+        #draw filled rect
         if not self.transparent:
-            #draw filled rect
             s = pygame.Surface((self.width,self.height), pygame.SRCALPHA)   # per-pixel alpha
             s.fill(self.getColor())
             surface.blit(s, (self.x, self.y))
         
+            #draw text
         if self.text != '':
             font = pygame.font.SysFont('comicsans', 40)
             text = font.render(self.text, 1, self.textColor)
             #Position the text on the center of the button
             surface.blit(text, (self.x + (self.width / 2 - text.get_width() / 2), self.y + (self.height / 2 - text.get_height() / 2)))
 
+        #draw piece
         if self.piece != None:
-            image = pygame.image.load(self.piece.getPath())
+            if self.piece.getAlliance() == 0:   #if is player piece
+                image = pygame.image.load(self.piece.getPath())
+            elif self.piece.getAlliance() == 1: #if is AI piece
+                image = pygame.image.load("bin\\Piece Shadow.png")
             surface.blit(image, (self.x + (self.width / 2 - image.get_width() / 2), self.y + (self.height / 2 - image.get_height() / 2)))
 
+        #draw outline
         if self.outline:
-            pygame.draw.rect(surface, self.outlineColor, self.rect, 2)   #draw outline
+            pygame.draw.rect(surface, self.outlineColor, self.rect, 2)   
 
 class SelectionPaneButton(Button):
     def __init__(self, x, y, width, height, color=(...), transparent=False, outline=False, outlineColor=(...), text='', textColor=(...), nPieces=0):
@@ -144,6 +147,6 @@ class SelectionPaneButton(Button):
     def draw(self, surface):
         super().draw(surface)
 
-        if self.pieces != []:
+        if self.pieces:
             image = pygame.image.load(self.pieces[0].getPath())
             surface.blit(image, (self.x + (self.width / 2 - image.get_width() / 2), self.y + (self.height / 2 - image.get_height() / 2)))

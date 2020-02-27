@@ -12,8 +12,7 @@ FPS = 30
 displayWidth = 1200
 displayHeight = 716   #1 extra pixel to see the last line
 
-#initialise board
-board = Board(100,55,12,5)
+board = Board(100,55,12,5)  #initialise board
 
 pygame.init()
 FPSCLOCK = pygame.time.Clock()
