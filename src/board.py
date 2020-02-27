@@ -251,7 +251,7 @@ class Board:
         if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
             railwayGraph = {}   #will contain adjacent nodes of the pos ({0 : [1, 10], ...})
             index = 0   #label the nodes (key for railwayGraph)
-            railwayList = []    #will contain all railway counting up to down, left to right ([(row, col), ...])
+            railwayList = []    #will contain all railway counting up to down, left to right ([(row, col), ...]) (railwayList[vertex] will have result for the location of railway)
             #initialise railwayList
             for j in range(self.numCol):
                 for i in range(self.numRow):
@@ -267,8 +267,8 @@ class Board:
                                       "up" : (i - 1, j)}  #save adjacent tiles
                         rw_adj = [] #save adjacent railway tiles
                         for direction in directions:  #loop all 4 directions
-                            if directions[direction][0] >= 0 and directions[direction][0] < self.numRow and directions[direction][1] >= 0 and directions[direction][1] < self.numCol and layout[directions[direction][0]][directions[direction][1]] == "RW" :   #check if adjacent tiles is railway
-                                rw_adj[adj_no] = railwayList.index(direction)
+                            if directions[direction][0] >= 0 and directions[direction][0] < self.numRow and directions[direction][1] >= 0 and directions[direction][1] < self.numCol and self.layout[directions[direction][0]][directions[direction][1]] == "RW" :   #check if adjacent tiles is railway
+                                rw_adj.append(railwayList.index(directions[direction]))
                         if index == 11:
                             if 12 in rw_adj:
                                 rw_adj.remove(12)
@@ -286,19 +286,37 @@ class Board:
                         index = index + 1
             #search for path to dest using DFS
             #DFS algorithm referenced from https://www.koderdojo.com/blog/depth-first-search-in-python-recursive-and-non-recursive-programming
-            def dfs(graph, start):
+            def DFS(graph, start, dest):
                 stack = [start]
                 path = []
                 while stack:
+                    if dest in path:
+                        break   #return as soon as a path has been find
                     vertex = stack.pop()
+                    if self.tiles[railwayList[vertex][0]][railwayList[vertex][1]].getPiece():
+                        if self.tiles[railwayList[vertex][0]][railwayList[vertex][1]].getPiece().getAlliance() != piece.getAlliance():
+                            path.append(vertex) #add to path if is opponent piece
+                        continue    #don't expand vertices with pieces on them
                     path.append(vertex)
                     for neighbour in graph[vertex]:
                         if neighbour in path:
-                            continue    #ignore discovered vertice
+                            continue    #ignore discovered vertices
                         if neighbour in stack:
-                            continue    #ignore discovered vertice
+                            continue    #ignore discovered vertices
                         stack.append(neighbour)
                 return path
+            start = railwayList.index((pieceRow, pieceCol)) #get the corresponding vertices
+            dest = railwayList.index((row, col))    #get the corresponding vertices
+            path = DFS(railwayGraph, start, dest)
+            if dest in path:
+                if self.tiles[row][col].getPiece() == None:
+                    action = "move"
+                elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                    action = "attack"
+                elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
+                    action = None
+            else:
+                action = None
         #if on railway
         if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW":
             if pieceRow == row:   #check if same horizontal railway
