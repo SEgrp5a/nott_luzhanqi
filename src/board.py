@@ -401,7 +401,7 @@ class Board:
                     #setup phase
                     if self.gamePhase == 1:
                         if self.currentPiece:
-                            if self.checkAvailablePlacement(i,j,self.currentPiece):
+                            if self.checkAvailablePlacement(i,j,self.currentPiece) and not self.tiles[i][j].getPiece():
                                 outlineColor_tile = self.green
                             else:
                                 outlineColor_tile = self.red
@@ -476,7 +476,13 @@ class Board:
                 #if is hovering on button
                 if 'hover' in self.selectionPaneTiles[k].handleEvent(event):
                     outline_select = True
-                    outlineColor_select = self.black
+                    if self.currentPiece:
+                        if self.selectionPaneTiles[k].getFlag() == self.currentPiece.toString():
+                            outlineColor_select = self.green
+                        else:
+                            outlineColor_select = self.red
+                    else:
+                        outlineColor_select = self.black
                 #if button is clicked
                 if 'down' in self.selectionPaneTiles[k].handleEvent(event):
                     outline_select = True
