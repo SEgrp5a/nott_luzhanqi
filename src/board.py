@@ -324,20 +324,28 @@ class Board:
     #AI random move
     def AImove(self):
         print('it is now AI turn')
-        #Turn = True
-        #for Turn == True:
-        rand_row = 5 #random.randint(0,11)
-        rand_column = 0 #random.randint(0,4)
-        randomPiece = self.tiles[rand_row][rand_column].getPiece() 
-        if randomPiece.getAlliance() == 1:
-            self.tiles[6][0].setPiece(randomPiece)
-            self.tiles[rand_row][rand_column].setPiece(None)
-        #tile[0,row][0,column] top left corner AND player is Alliance 0 , AI is alliance 1
-        # print('this is a ' + piece.toString() + '\n')
-        # alliance = piece.getAlliance()
-        # print(alliance)
+        Turn = True
+        for Turn == True: 
+            rand_row = random.randint(0,11)
+            rand_column = random.randint(0,4)
 
-        return 0
+            availeble_moves_row = [None]
+            availeble_moves_col = [None]
+            randomPiece = self.tiles[rand_row][rand_column].getPiece()
+
+            if randomPiece.getAlliance() == 1:
+                #check all possible moves of that piece by scanning the whole board
+                for i in range(self.numCol):
+                    for j in range(self.numRow):
+                        if checkAvailableMovement(i,j,randomPiece,rand_row,rand_column) != None:
+                            availeble_moves_row.append(j)
+                            availeble_moves_col.append(i)
+                #Now pick a random move from the array availeble_moves
+                
+                #self.tiles[6][0].setPiece(randomPiece)
+                #self.tiles[rand_row][rand_column].setPiece(None)
+                #Turn = False
+    return 0
 
     #handle mouse click
     def handleEvent(self, event):
