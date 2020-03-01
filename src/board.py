@@ -325,27 +325,49 @@ class Board:
     def AImove(self):
         print('it is now AI turn')
         Turn = True
-        for Turn == True: 
+        randomPiece = None
+        while Turn == True: 
             rand_row = random.randint(0,11)
             rand_column = random.randint(0,4)
 
-            availeble_moves_row = [None]
-            availeble_moves_col = [None]
+            moves_row = []
+            moves_col = []
             randomPiece = self.tiles[rand_row][rand_column].getPiece()
 
-            if randomPiece.getAlliance() == 1:
-                #check all possible moves of that piece by scanning the whole board
-                for i in range(self.numCol):
-                    for j in range(self.numRow):
-                        if checkAvailableMovement(i,j,randomPiece,rand_row,rand_column) != None:
-                            availeble_moves_row.append(j)
-                            availeble_moves_col.append(i)
-                #Now pick a random move from the array availeble_moves
-                
-                #self.tiles[6][0].setPiece(randomPiece)
-                #self.tiles[rand_row][rand_column].setPiece(None)
-                #Turn = False
-    return 0
+            if randomPiece != None and randomPiece.toString() != 'Flag' and randomPiece.toString() != 'Landmine':
+                if randomPiece.getAlliance() == 1:
+                    #check all possible moves of that single randomPiece by scanning the whole board
+                    for i in range(self.numCol):
+                        for j in range(self.numRow):
+                            if self.checkAvailableMovement(j,i,randomPiece,rand_row,rand_column) != None:
+                                moves_row.append(j)
+                                moves_col.append(i)
+                    #Now pick a random move from the array moves
+                    if len(moves_col) != 0:
+                        rand_index = random.randint(0,(len(moves_col)-1))
+                        action = self.checkAvailableMovement(moves_row[rand_index],moves_col[rand_index],randomPiece,rand_row,rand_column)
+                        if  action == 'move':
+                            if moves_col[rand_index] != rand_column and moves_row[rand_index] != rand_row: #Prevent choosing Original Place
+                                self.tiles[moves_row[rand_index]][moves_col[rand_index]].setPiece(randomPiece)
+                                self.tiles[rand_row][rand_column].setPiece(None)
+                                print(randomPiece.toString() + ": Alliance " + str(randomPiece.getAlliance()) + " Moved\n")
+                                Turn = False
+                            else:
+                                Turn = True
+                        #if that availeble action is 'attack' then attack
+                        if action == 'attack':
+                            print(randomPiece.toString() + ": Alliance " + str(randomPiece.getAlliance()) + " Attacked\n")
+                            attackPiece = randomPiece
+                            defendPiece = self.tiles[moves_row[rand_index]][moves_col[rand_index]].getPiece()
+                            winner = self.referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
+                            self.tiles[moves_row[rand_index]][moves_col[rand_index]].setPiece(winner)
+                            self.tiles[rand_row][rand_column].setPiece(None)
+                            Turn = False
+                elif randomPiece.getAlliance() == 0:
+                    Turn = True
+                else:
+                    print('Error Occured: Exception')
+                    break 
 
     #handle mouse click
     def handleEvent(self, event):
