@@ -350,13 +350,19 @@ class Board:
                             if moves_col[rand_index] != rand_column and moves_row[rand_index] != rand_row: #Prevent choosing Original Place
                                 self.tiles[moves_row[rand_index]][moves_col[rand_index]].setPiece(randomPiece)
                                 self.tiles[rand_row][rand_column].setPiece(None)
-                                print(randomPiece.toString() + ": Alliance " + str(randomPiece.getAlliance()) + " Moved\n")
+                                print(randomPiece.toString() + ": Alliance " + str(randomPiece.getAlliance()) + " Moved from "
+                                + str(rand_row) + "," + str(rand_column) + " to "
+                                + str(moves_row[rand_index]) + "," + str(moves_col[rand_index]) + "\n"
+                                )
                                 Turn = False
                             else:
                                 Turn = True
                         #if that availeble action is 'attack' then attack
                         if action == 'attack':
-                            print(randomPiece.toString() + ": Alliance " + str(randomPiece.getAlliance()) + " Attacked\n")
+                            print(randomPiece.toString() + ": Alliance " + str(randomPiece.getAlliance()) + " Attacked from "
+                            + str(rand_row) + "," + str(rand_column) + " to "
+                            + str(moves_row[rand_index]) + "," + str(moves_col[rand_index]) + "\n"
+                            )
                             attackPiece = randomPiece
                             defendPiece = self.tiles[moves_row[rand_index]][moves_col[rand_index]].getPiece()
                             winner = self.referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
