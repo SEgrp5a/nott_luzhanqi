@@ -443,15 +443,14 @@ class Board:
                                 self.currentPiece = None
                                 self.pieceRow = None
                                 self.pieceCol = None
-                                #whenever the player attackes.. then the AI will initiate its turn 
-                                self.AImove()
                             elif action == "move":
                                 self.tiles[i][j].setPiece(self.currentPiece)
                                 self.currentPiece = None
                                 self.pieceRow = None
                                 self.pieceCol = None
-                                #whenever the player moves.. then the AI will initiate its turn 
-                                self.AImove()
+                            #whenever the player's turn is over.. then the AI will take action
+                            pygame.time.wait(500)
+                            self.AImove()
                 #if mouse exited a button
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
