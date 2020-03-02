@@ -454,6 +454,8 @@ class Board:
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
                 self.tiles[i][j].update(self.tiles[i][j].getColor(), outline_tile, outlineColor_tile)
+        if self.gamePhase == 2 and self.currentPiece:
+            self.tiles[self.pieceRow][self.pieceCol].setOutline(True, self.blue)
 
         #handle event on selection pane
         if self.gamePhase == 1:
