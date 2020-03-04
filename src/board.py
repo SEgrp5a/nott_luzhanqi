@@ -5,42 +5,6 @@ from button import *
 from pieces import *
 
 class Board:
-    def referee(self,piece1, piece2):
-        winner = None
-        #checking alliances
-        if piece1.alliance == piece2.alliance:
-            print('You can not attack your own piece!\n')
-        elif piece1.toString() != "Flag" and piece2.toString() != "Flag":
-            #if engineer steps on a landmine
-            if piece1.toString() == "Landmine" and piece2.toString() == "Engineer" or piece1.toString() == "Engineer" and piece2.toString() == "Landmine":
-                print("Engineer has disarmed the landmine!\n")
-                if piece1.toString() == "Engineer":
-                    winner = piece1
-                else:
-                    winner = piece2
-            #if Grenade attacks any piece
-            elif piece1.toString() == "Grenade" or piece2.toString() == "Grenade":
-                print("Both pieces have been taken") 
-            #if Grenade lands on Landmine
-            elif piece1.toString() == "Landmine" and piece2.toString() == "Grenade" or piece1.toString() == "Grenade" and piece2.toString() == "Landmine":
-                print("Both Landmine and Grenade are GONE!\n")
-            #every other pieces of different or same rank battling
-            elif piece1.rank < piece2.rank:
-                print(piece1.toString() + " has taken " + piece2.toString() +"!\n")
-                winner = piece1
-            elif piece2.rank < piece1.rank:
-                print(piece2.toString() + " has taken " + piece1.toString() + "!\n")
-                winner = piece2
-            elif piece2.rank == piece1.rank:
-                print(piece2.toString() + " and " + piece1.toString() + " have both been taken!\n")
-        #if Flag is captured
-        elif piece1.toString() == "Flag":
-            print(piece2.toString() + " has captured the Flag\n")
-        elif piece2.toString() == "Flag":
-            print(piece1.toString() + " has captured the Flag\n")
-
-        return winner
-
     def __init__(self,width,height,numRow,numCol):
         self.red = pygame.Color(255,0,0)
         self.green = pygame.Color(0,255,0)
@@ -326,7 +290,7 @@ class Board:
         print('it is now AI turn')
         Turn = True
         randomPiece = None
-        while Turn == True: 
+        while Turn == True:
             rand_row = random.randint(0,11)
             rand_column = random.randint(0,4)
 
@@ -373,7 +337,62 @@ class Board:
                     Turn = True
                 else:
                     print('Error Occured: Exception')
-                    break 
+                    break
+
+    def referee(self,piece1, piece2):
+        winner = None
+        loser = None
+        #checking alliances
+        if piece1.alliance == piece2.alliance:
+            print('You can not attack your own piece!\n')
+        elif piece1.toString() != "Flag" and piece2.toString() != "Flag":
+            #if engineer steps on a landmine
+            if piece1.toString() == "Landmine" and piece2.toString() == "Engineer" or piece1.toString() == "Engineer" and piece2.toString() == "Landmine":
+                print("Engineer has disarmed the landmine!\n")
+                if piece1.toString() == "Engineer":
+                    winner = piece1
+                    loser = piece2
+                else:
+                    winner = piece2
+                    loser = piece1
+            #if Grenade attacks any piece
+            elif piece1.toString() == "Grenade" or piece2.toString() == "Grenade":
+                print("Both pieces have been taken")
+                loser = piece1
+            #if Grenade lands on Landmine
+            elif piece1.toString() == "Landmine" and piece2.toString() == "Grenade" or piece1.toString() == "Grenade" and piece2.toString() == "Landmine":
+                print("Both Landmine and Grenade are GONE!\n")
+                loser = piece1
+            #every other pieces of different or same rank battling
+            elif piece1.rank < piece2.rank:
+                print(piece1.toString() + " has taken " + piece2.toString() +"!\n")
+                winner = piece1
+                loser = piece2
+            elif piece2.rank < piece1.rank:
+                print(piece2.toString() + " has taken " + piece1.toString() + "!\n")
+                winner = piece2
+                loser = piece1
+            elif piece2.rank == piece1.rank:
+                print(piece2.toString() + " and " + piece1.toString() + " have both been taken!\n")
+                loser = piece1
+                loser.alliance=0
+        #if Flag is captured
+        elif piece1.toString() == "Flag":
+            print(piece2.toString() + " has captured the Flag\n")
+        elif piece2.toString() == "Flag":
+            print(piece1.toString() + " has captured the Flag\n")
+
+        if loser.alliance == 0  and self.pieceData[loser.toString()][0] == 0:
+            k = 0
+            for item in self.pieceData:
+                if (self.selectionPaneTiles[k].getFlag() == loser.toString()):
+                    self.selectionPaneTiles[k].addPiece(loser)
+                k=k+1
+
+        if loser.alliance == 0: # only draw my own piece
+            self.pieceData[loser.toString()][0]=self.pieceData[loser.toString()][0]+1
+
+        return winner
 
     #handle mouse click
     def handleEvent(self, event):
