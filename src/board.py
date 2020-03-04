@@ -330,7 +330,7 @@ class Board:
                         elif self.tiles[row][col].getPiece() and self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
                             if not self.tiles[row][pieceCol - (int(distance / abs(distance)) * hOffset)].getPiece():
                                 action = "attack"
-                            elif self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece():
+                            elif self.tiles[pieceRow - (int(distance / abs(distance)) * hOffset)][col].getPiece():
                                 action = None
                                 break
                     else:
