@@ -1,5 +1,6 @@
 import pygame
 import operator
+import random
 from button import *
 from pieces import *
 
@@ -388,6 +389,60 @@ class Board:
                 action = None
         return action
 
+    #AI random move
+    def AImove(self):
+        print('it is now AI turn')
+        Turn = True
+        randomPiece = None
+        while Turn == True:
+            rand_row = random.randint(0,11)
+            rand_column = random.randint(0,4)
+
+            moves_row = []
+            moves_col = []
+            randomPiece = self.tiles[rand_row][rand_column].getPiece()
+
+            if randomPiece != None and randomPiece.toString() != 'Flag' and randomPiece.toString() != 'Landmine':
+                if randomPiece.getAlliance() == 1:
+                    #check all possible moves of that single randomPiece by scanning the whole board
+                    for i in range(self.numCol):
+                        for j in range(self.numRow):
+                            if self.checkAvailableMovement(j,i,randomPiece,rand_row,rand_column) != None:
+                                moves_row.append(j)
+                                moves_col.append(i)
+                    #Now pick a random move from the array moves
+                    if len(moves_col) != 0:
+                        rand_index = random.randint(0,(len(moves_col)-1))
+                        action = self.checkAvailableMovement(moves_row[rand_index],moves_col[rand_index],randomPiece,rand_row,rand_column)
+                        if  action == 'move':
+                            if moves_col[rand_index] != rand_column and moves_row[rand_index] != rand_row: #Prevent choosing Original Place
+                                self.tiles[moves_row[rand_index]][moves_col[rand_index]].setPiece(randomPiece)
+                                self.tiles[rand_row][rand_column].setPiece(None)
+                                print(randomPiece.toString() + ": Alliance " + str(randomPiece.getAlliance()) + " Moved from "
+                                + str(rand_row) + "," + str(rand_column) + " to "
+                                + str(moves_row[rand_index]) + "," + str(moves_col[rand_index]) + "\n"
+                                )
+                                Turn = False
+                            else:
+                                Turn = True
+                        #if that availeble action is 'attack' then attack
+                        if action == 'attack':
+                            print(randomPiece.toString() + ": Alliance " + str(randomPiece.getAlliance()) + " Attacked from "
+                            + str(rand_row) + "," + str(rand_column) + " to "
+                            + str(moves_row[rand_index]) + "," + str(moves_col[rand_index]) + "\n"
+                            )
+                            attackPiece = randomPiece
+                            defendPiece = self.tiles[moves_row[rand_index]][moves_col[rand_index]].getPiece()
+                            winner = self.referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
+                            self.tiles[moves_row[rand_index]][moves_col[rand_index]].setPiece(winner)
+                            self.tiles[rand_row][rand_column].setPiece(None)
+                            Turn = False
+                elif randomPiece.getAlliance() == 0:
+                    Turn = True
+                else:
+                    print('Error Occured: Exception')
+                    break
+
     #handle mouse click
     def handleEvent(self, event):
         #handle event on board tiles
@@ -420,8 +475,6 @@ class Board:
                 if 'down' in self.tiles[i][j].handleEvent(event):
                     outline_tile = True
                     outlineColor_tile = self.blue
-                #if button is clicked & released
-                if 'click' in self.tiles[i][j].handleEvent(event):
                     #setup phase
                     if self.gamePhase == 1:
                         #take the piece if the tile already contain a piece
@@ -450,6 +503,9 @@ class Board:
                                 self.tiles[i][j].setPiece(None)
                         else:
                             self.takeAction(self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j))
+                            #whenever the player's turn is over.. then the AI will take action
+                            pygame.time.wait(500)
+                            self.AImove()
                 #if mouse exited a button
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
@@ -508,6 +564,9 @@ class Board:
             #if button is clicked & released
             if 'click' in self.doneButton.handleEvent(event):
                 self.checkDone()
+                print('You make the first move')
+                #Bool variable to check turns
+                #aiTurn = False
             #if mouse exited a button
             if 'exit' in self.doneButton.handleEvent(event):
                 outline_done = False
@@ -516,6 +575,7 @@ class Board:
     #referee will decide on the result of an attack action
     def referee(self,piece1, piece2):
         winner = None
+        loser = None
         #checking alliances
         if piece1.alliance == piece2.alliance:
             print('You can not attack your own piece!\n')
@@ -525,28 +585,46 @@ class Board:
                 print("Engineer has disarmed the landmine!\n")
                 if piece1.toString() == "Engineer":
                     winner = piece1
+                    loser = piece2
                 else:
                     winner = piece2
+                    loser = piece1
             #if Grenade attacks any piece
             elif piece1.toString() == "Grenade" or piece2.toString() == "Grenade":
                 print("Both pieces have been taken")
+                loser = piece1
             #if Grenade lands on Landmine
             elif piece1.toString() == "Landmine" and piece2.toString() == "Grenade" or piece1.toString() == "Grenade" and piece2.toString() == "Landmine":
                 print("Both Landmine and Grenade are GONE!\n")
+                loser = piece1
             #every other pieces of different or same rank battling
             elif piece1.rank < piece2.rank:
                 print(piece1.toString() + " has taken " + piece2.toString() +"!\n")
                 winner = piece1
+                loser = piece2
             elif piece2.rank < piece1.rank:
                 print(piece2.toString() + " has taken " + piece1.toString() + "!\n")
                 winner = piece2
+                loser = piece1
             elif piece2.rank == piece1.rank:
                 print(piece2.toString() + " and " + piece1.toString() + " have both been taken!\n")
+                loser = piece1
+                loser.alliance=0
         #if Flag is captured
         elif piece1.toString() == "Flag":
             print(piece2.toString() + " has captured the Flag\n")
         elif piece2.toString() == "Flag":
             print(piece1.toString() + " has captured the Flag\n")
+
+        if loser.alliance == 0  and self.pieceData[loser.toString()][0] == 0:
+            k = 0
+            for item in self.pieceData:
+                if (self.selectionPaneTiles[k].getFlag() == loser.toString()):
+                    self.selectionPaneTiles[k].addPiece(loser)
+                k=k+1
+
+        if loser.alliance == 0: # only draw my own piece
+            self.pieceData[loser.toString()][0]=self.pieceData[loser.toString()][0]+1
 
         return winner
 
