@@ -244,9 +244,9 @@ class Board:
             return False    #landmine and flag cannot be move
         #if no move
         if og == (row, col):
-            action = "move"
+            action = "no move"
         #if engineer on railway
-        if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
+        elif self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
             railwayGraph = {}   #will contain adjacent nodes of the pos ({0 : [1, 10], ...})
             index = 0   #label the nodes (key for railwayGraph)
             railwayList = []    #will contain all railway counting up to down, left to right ([(row, col), ...]) (railwayList[vertex] will have result for the location of railway)
@@ -356,7 +356,7 @@ class Board:
                         action = None
                         break
         #if currently on camp
-        if self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+        elif self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
@@ -364,13 +364,13 @@ class Board:
             elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
                 action = None
         #if moving to camp
-        if self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+        elif self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             else:
                 action = None
         #horizontal movement
-        if lf == (row, col) or rg == (row, col):
+        elif lf == (row, col) or rg == (row, col):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
@@ -378,7 +378,7 @@ class Board:
             elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
                 action = None
         #vertical movement
-        if up == (row, col) or dw == (row, col):
+        elif up == (row, col) or dw == (row, col):
             if up == (5, 1) or up == (5, 3) or dw == (6, 1) or dw == (6, 3):    #check if not blocked by mountain range
                 action == None
             elif not self.tiles[row][col].getPiece():
@@ -474,7 +474,9 @@ class Board:
                 #if button is clicked
                 if 'down' in self.tiles[i][j].handleEvent(event):
                     outline_tile = True
-                    outlineColor_tile = self.blue
+                    outlineColor_tile = self.blue           
+                #if button is clicked & released
+                if 'click' in self.tiles[i][j].handleEvent(event):
                     #setup phase
                     if self.gamePhase == 1:
                         #take the piece if the tile already contain a piece
@@ -495,21 +497,22 @@ class Board:
                     #playing phase
                     elif self.gamePhase == 2:
                         #take the piece if the tile already contain a piece(except for landmine and flag)
-                        if self.currentPiece == None:
-                            if self.tiles[i][j].getPiece() and self.tiles[i][j].getPiece().toString() != "Landmine" and self.tiles[i][j].getPiece().toString() != "Flag":
+                        if not self.currentPiece:
+                            if self.tiles[i][j].getPiece() and self.tiles[i][j].getPiece().getAlliance() != 1 and self.tiles[i][j].getPiece().toString() != "Landmine" and self.tiles[i][j].getPiece().toString() != "Flag":
                                 self.currentPiece = self.tiles[i][j].getPiece()
                                 self.pieceRow = i
                                 self.pieceCol = j
                                 self.tiles[i][j].setPiece(None)
                         else:
-                            self.takeAction(self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j))
-                            #whenever the player's turn is over.. then the AI will take action
-                            pygame.time.wait(500)
-                            self.AImove()
+                            if self.takeAction(self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
+                                #whenever the player's turn is over.. then the AI will take action
+                                pygame.time.wait(500)
+                                self.AImove()
                 #if mouse exited a button
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
                 self.tiles[i][j].update(self.tiles[i][j].getColor(), outline_tile, outlineColor_tile)
+        
         if self.gamePhase == 2 and self.currentPiece:
             self.tiles[self.pieceRow][self.pieceCol].setOutline(True, self.blue)
 
@@ -564,9 +567,6 @@ class Board:
             #if button is clicked & released
             if 'click' in self.doneButton.handleEvent(event):
                 self.checkDone()
-                print('You make the first move')
-                #Bool variable to check turns
-                #aiTurn = False
             #if mouse exited a button
             if 'exit' in self.doneButton.handleEvent(event):
                 outline_done = False
@@ -642,3 +642,9 @@ class Board:
             self.currentPiece = None
             self.pieceRow = None
             self.pieceCol = None
+            if action == "no move":
+                return False
+            else:
+                return True
+        else:
+            return False
