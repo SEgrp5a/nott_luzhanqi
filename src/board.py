@@ -229,7 +229,7 @@ class Board:
 
     #check if movement is vailable
     def checkAvailableMovement(self, row, col, piece, pieceRow, pieceCol):
-        action = None   #action is either "attack" or "move" or None for invalid action
+        action = None   #action is either "attack" or "move" or "no move" or None for invalid action
         #pos = (row, col)
         ul = (pieceRow - 1, pieceCol - 1) #upperleft
         up = (pieceRow - 1, pieceCol)     #up
@@ -241,12 +241,13 @@ class Board:
         dw = (pieceRow + 1, pieceCol)     #down
         dr = (pieceRow + 1, pieceCol + 1) #downright
         if piece.toString() == "Landmine" or piece.toString() == "Flag":
-            return False    #landmine and flag cannot be move
+            action = None    #landmine and flag cannot be move
         #if no move
         if og == (row, col):
             action = "no move"
+            return action
         #if engineer on railway
-        elif self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
+        if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
             railwayGraph = {}   #will contain adjacent nodes of the pos ({0 : [1, 10], ...})
             index = 0   #label the nodes (key for railwayGraph)
             railwayList = []    #will contain all railway counting up to down, left to right ([(row, col), ...]) (railwayList[vertex] will have result for the location of railway)
@@ -282,7 +283,7 @@ class Board:
                         rw_adj.sort()   #sort to improve DFS consistency
                         railwayGraph[index] = rw_adj
                         index = index + 1
-            #search for path to dest using DFS
+            #search path to dest using DFS
             #DFS algorithm referenced from https://www.koderdojo.com/blog/depth-first-search-in-python-recursive-and-non-recursive-programming
             def DFS(graph, start, dest):
                 stack = [start]
@@ -295,13 +296,13 @@ class Board:
                         if self.tiles[railwayList[vertex][0]][railwayList[vertex][1]].getPiece().getAlliance() != piece.getAlliance():
                             path.append(vertex) #add to path if is opponent piece
                         continue    #don't expand vertices with pieces on them
-                    path.append(vertex)
                     for neighbour in graph[vertex]:
                         if neighbour in path:
                             continue    #ignore discovered vertices
                         if neighbour in stack:
                             continue    #ignore discovered vertices
                         stack.append(neighbour)
+                    path.append(vertex)
                 return path
             start = railwayList.index((pieceRow, pieceCol)) #get the corresponding vertices
             dest = railwayList.index((row, col))    #get the corresponding vertices
@@ -313,13 +314,11 @@ class Board:
                     action = "attack"
                 elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
                     action = None
-            else:
-                action = None
         #if on railway
         elif self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW":
             if pieceRow == row:   #check if same horizontal railway
                 distance = pieceCol - col
-                for hOffset in range(0, abs(distance)):
+                for hOffset in range(abs(distance)):
                     if self.layout[row][pieceCol - (int(distance / abs(distance)) * hOffset)] == "RW":
                         if not self.tiles[row][col].getPiece():
                             if not self.tiles[row][pieceCol - (int(distance / abs(distance)) * hOffset)].getPiece():
@@ -330,23 +329,23 @@ class Board:
                         elif self.tiles[row][col].getPiece() and self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
                             if not self.tiles[row][pieceCol - (int(distance / abs(distance)) * hOffset)].getPiece():
                                 action = "attack"
-                            elif self.tiles[pieceRow - (int(distance / abs(distance)) * hOffset)][col].getPiece():
+                            elif self.tiles[row][pieceCol - (int(distance / abs(distance)) * hOffset)].getPiece():
                                 action = None
                                 break
                     else:
                         action = None
                         break
-            elif pieceCol == col and not (col == 1 or col == 3): #check if same vertical railway and not blocked by mountain range
+            if pieceCol == col and not (col == 1 or col == 3): #check if same vertical railway and not blocked by mountain range
                 distance = pieceRow - row
-                for vOffset in range(0, abs(distance)):
+                for vOffset in range(abs(distance)):
                     if self.layout[pieceRow - (int(distance / abs(distance)) * vOffset)][col] == "RW":
-                        if self.tiles[row][col].getPiece() == None:
+                        if not self.tiles[row][col].getPiece():
                             if not self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece():
                                 action = "move"
                             elif self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece():
                                 action = None
                                 break
-                        elif self.tiles[row][col].getPiece() != None and self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
+                        elif self.tiles[row][col].getPiece() and self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
                             if not self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece():
                                 action = "attack"
                             elif self.tiles[pieceRow - (int(distance / abs(distance)) * vOffset)][col].getPiece():
@@ -356,7 +355,7 @@ class Board:
                         action = None
                         break
         #if currently on camp
-        elif self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+        if self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
@@ -364,13 +363,13 @@ class Board:
             elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
                 action = None
         #if moving to camp
-        elif self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+        if self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             else:
                 action = None
         #horizontal movement
-        elif lf == (row, col) or rg == (row, col):
+        if lf == (row, col) or rg == (row, col):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
@@ -378,7 +377,7 @@ class Board:
             elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
                 action = None
         #vertical movement
-        elif up == (row, col) or dw == (row, col):
+        if up == (row, col) or dw == (row, col):
             if up == (5, 1) or up == (5, 3) or dw == (6, 1) or dw == (6, 3):    #check if not blocked by mountain range
                 action == None
             elif not self.tiles[row][col].getPiece():
@@ -392,56 +391,30 @@ class Board:
     #AI random move
     def AImove(self):
         print('it is now AI turn')
-        Turn = True
+        ai_turn = True
         randomPiece = None
-        while Turn == True:
+        while ai_turn == True:
             rand_row = random.randint(0,11)
-            rand_column = random.randint(0,4)
+            rand_col = random.randint(0,4)
 
             moves_row = []
             moves_col = []
-            randomPiece = self.tiles[rand_row][rand_column].getPiece()
+            randomPiece = self.tiles[rand_row][rand_col].getPiece()
 
-            if randomPiece != None and randomPiece.toString() != 'Flag' and randomPiece.toString() != 'Landmine':
-                if randomPiece.getAlliance() == 1:
-                    #check all possible moves of that single randomPiece by scanning the whole board
-                    for i in range(self.numCol):
-                        for j in range(self.numRow):
-                            if self.checkAvailableMovement(j,i,randomPiece,rand_row,rand_column) != None:
-                                moves_row.append(j)
-                                moves_col.append(i)
-                    #Now pick a random move from the array moves
-                    if len(moves_col) != 0:
-                        rand_index = random.randint(0,(len(moves_col)-1))
-                        action = self.checkAvailableMovement(moves_row[rand_index],moves_col[rand_index],randomPiece,rand_row,rand_column)
-                        if  action == 'move':
-                            if moves_col[rand_index] != rand_column and moves_row[rand_index] != rand_row: #Prevent choosing Original Place
-                                self.tiles[moves_row[rand_index]][moves_col[rand_index]].setPiece(randomPiece)
-                                self.tiles[rand_row][rand_column].setPiece(None)
-                                print(randomPiece.toString() + ": Alliance " + str(randomPiece.getAlliance()) + " Moved from "
-                                + str(rand_row) + "," + str(rand_column) + " to "
-                                + str(moves_row[rand_index]) + "," + str(moves_col[rand_index]) + "\n"
-                                )
-                                Turn = False
-                            else:
-                                Turn = True
-                        #if that availeble action is 'attack' then attack
-                        if action == 'attack':
-                            print(randomPiece.toString() + ": Alliance " + str(randomPiece.getAlliance()) + " Attacked from "
-                            + str(rand_row) + "," + str(rand_column) + " to "
-                            + str(moves_row[rand_index]) + "," + str(moves_col[rand_index]) + "\n"
-                            )
-                            attackPiece = randomPiece
-                            defendPiece = self.tiles[moves_row[rand_index]][moves_col[rand_index]].getPiece()
-                            winner = self.referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
-                            self.tiles[moves_row[rand_index]][moves_col[rand_index]].setPiece(winner)
-                            self.tiles[rand_row][rand_column].setPiece(None)
-                            Turn = False
-                elif randomPiece.getAlliance() == 0:
-                    Turn = True
-                else:
-                    print('Error Occured: Exception')
-                    break
+            if randomPiece != None and randomPiece.getAlliance() == 1 and randomPiece.toString() != 'Flag' and randomPiece.toString() != 'Landmine':
+                self.tiles[rand_row][rand_col].setPiece(None)
+                #check all possible moves of that single randomPiece by scanning the whole board
+                for i in range(self.numRow):
+                    for j in range(self.numCol):
+                        action = self.checkAvailableMovement(i,j,randomPiece,rand_row,rand_col)
+                        if action != None and action != "no move":
+                            moves_row.append(i)
+                            moves_col.append(j)
+                #Now pick a random move from the array moves
+                if len(moves_col):
+                    rand_index = random.randint(0,(len(moves_col)-1))
+                    if self.takeAction(randomPiece, (self.checkAvailableMovement(moves_row[rand_index],moves_col[rand_index],randomPiece,rand_row,rand_col)), (moves_row[rand_index],moves_col[rand_index])):
+                        ai_turn = False
 
     #handle mouse click
     def handleEvent(self, event):
@@ -504,7 +477,7 @@ class Board:
                                 self.pieceCol = j
                                 self.tiles[i][j].setPiece(None)
                         else:
-                            if self.takeAction(self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
+                            if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
                                 #whenever the player's turn is over.. then the AI will take action
                                 pygame.time.wait(500)
                                 self.AImove()
@@ -629,13 +602,13 @@ class Board:
         return winner
 
     #called whenever an action is executed
-    def takeAction(self, action, dest):
-        replacement = self.currentPiece
+    def takeAction(self, piece, action, dest):
+        replacement = piece
         i = dest[0]
         j = dest[1]
         if action:
             if action == "attack":
-                attackPiece = self.currentPiece
+                attackPiece = piece
                 defendPiece = self.tiles[i][j].getPiece()
                 replacement = self.referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
             self.tiles[i][j].setPiece(replacement)

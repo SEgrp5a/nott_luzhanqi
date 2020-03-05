@@ -16,9 +16,6 @@ class Piece:
     def getAlliance(self):
         return self.alliance
 
-class NullPiece(Piece):
-    pass
-
 class Flag(Piece):
 
     def __init__(self,alliance,position):
