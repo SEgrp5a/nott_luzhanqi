@@ -6,18 +6,41 @@ from pieces import *
 class AI():
     def __init__(self, board):
         self.brd = board    #get Board reference
+        self.prediction = self.genPrediction()
 
-    def genAiPieces(self):
+    def genPrediction(self):
+        prediction = {}
+        
+        for i in range(int(self.brd.numRow/2),self.brd.numRow):
+            for j in range(self.brd.numCol):
+                default = ["Marshal", "General", "Lieutenant",
+                           "Brigadier", "Colonel", "Major",
+                           "Captain", "Commander", "Engineer"]
+                playerPiece = self.brd.tiles[i][j].getPiece()
+                if playerPiece:
+                    prediction[playerPiece] = default
+                    if self.brd.layout[i][j] == 'HQ':
+                        #add Flag to prediction if at HQ
+                        prediction[playerPiece].append('Flag')
+                    if i >= 10:
+                        #add Landmine to prediction if at last 2 rows
+                        prediction[playerPiece].append('Landmine')
+                    if i > 6:
+                        #add Grenade to prediction if not at 1st row
+                        prediction[playerPiece].append('Grenade')
+        return prediction
+
+
+    def placePieces(self):
         for j in range(self.brd.numCol):
             tempY = 11 # -1 for each iteration to simulate mirroring
-            for i in range(6):
+            for i in range(int(self.brd.numRow/2)):
                 if self.brd.tiles[tempY][j].getPiece():
                     self.brd.tiles[i][j].setPiece(self.brd.spawnPiece(1, self.brd.tiles[tempY][j].getPiece().toString(), self.brd.tiles[i][j].getPos()))
                 tempY = tempY - 1
-        self.brd.gamePhase = 2
 
     #AI random move
-    def AImove(self):
+    def makeMove(self):
         print('it is now AI turn')
         ai_turn = True
         randomPiece = None

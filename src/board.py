@@ -47,7 +47,7 @@ class Board:
         #record game phase
         self.gamePhase = 1
         #create AI
-        self.ai = AI(self)
+        self.ai = None
 
     def getGamePhase():
         return self.gamePhase
@@ -106,7 +106,7 @@ class Board:
         i = 0
         for item in self.pieceData:
             selectionPaneTiles[i] = SelectionPaneButton(x, y, 50, 50, color = (255,255,0), nPieces = self.pieceData[item][0])
-            for j in range(self.pieceData[item][0]):
+            for _ in range(self.pieceData[item][0]):
                 selectionPaneTiles[i].addPiece(self.spawnPiece(0, item, selectionPaneTiles[i].getPos()))
             selectionPaneTiles[i].setFlag(item)
             i = i + 1
@@ -158,7 +158,9 @@ class Board:
                 #    # can do a pop-up to let user know not all pieces are set
                 #    break
             if complete==True:
-                self.ai.genAiPieces()
+                self.ai = AI(self)  #initialize AI
+                self.ai.placePieces()
+                self.gamePhase = 2
 
     #Draw the entire interface
     def draw(self,surface):
@@ -446,7 +448,7 @@ class Board:
                             if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
                                 #whenever the player's turn is over.. then the AI will take action
                                 pygame.time.wait(500)
-                                self.ai.AImove()
+                                self.ai.makeMove()
                 #if mouse exited a button
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
