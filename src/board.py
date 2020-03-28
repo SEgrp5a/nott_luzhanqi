@@ -3,6 +3,7 @@ import operator
 import random
 from button import *
 from pieces import *
+from AI import AI
 
 class Board:
     def __init__(self,width,height,numRow,numCol):
@@ -45,6 +46,8 @@ class Board:
         self.doneButton = Button(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
         #record game phase
         self.gamePhase = 1
+        #create AI
+        self.ai = AI(self)
 
     def getGamePhase():
         return self.gamePhase
@@ -145,26 +148,17 @@ class Board:
 
         return spawn
 
-    def genAiPieces(self):
-        for j in range(self.numCol):
-            tempY = 11 # -1 for each iteration to simulate mirroring
-            for i in range(6):
-                if self.tiles[tempY][j].getPiece():
-                    self.tiles[i][j].setPiece(self.spawnPiece(1, self.tiles[tempY][j].getPiece().toString(), self.tiles[i][j].getPos()))
-                tempY = tempY - 1
-        self.gamePhase = 2
-
     def checkDone(self):
         complete=False
         if self.currentPiece == None:
             for k in self.pieceData:
                 if self.pieceData[k][0] == 0:
                     complete=True;
-                else:
-                    # can do a pop-up to let user know not all pieces are set
-                    break
+                #else:
+                #    # can do a pop-up to let user know not all pieces are set
+                #    break
             if complete==True:
-                self.genAiPieces()
+                self.ai.genAiPieces()
 
     #Draw the entire interface
     def draw(self,surface):
@@ -388,34 +382,6 @@ class Board:
                 action = None
         return action
 
-    #AI random move
-    def AImove(self):
-        print('it is now AI turn')
-        ai_turn = True
-        randomPiece = None
-        while ai_turn == True:
-            rand_row = random.randint(0,11)
-            rand_col = random.randint(0,4)
-
-            moves_row = []
-            moves_col = []
-            randomPiece = self.tiles[rand_row][rand_col].getPiece()
-
-            if randomPiece != None and randomPiece.getAlliance() == 1 and randomPiece.toString() != 'Flag' and randomPiece.toString() != 'Landmine':
-                self.tiles[rand_row][rand_col].setPiece(None)
-                #check all possible moves of that single randomPiece by scanning the whole board
-                for i in range(self.numRow):
-                    for j in range(self.numCol):
-                        action = self.checkAvailableMovement(i,j,randomPiece,rand_row,rand_col)
-                        if action != None and action != "no move":
-                            moves_row.append(i)
-                            moves_col.append(j)
-                #Now pick a random move from the array moves
-                if len(moves_col):
-                    rand_index = random.randint(0,(len(moves_col)-1))
-                    if self.takeAction(randomPiece, (self.checkAvailableMovement(moves_row[rand_index],moves_col[rand_index],randomPiece,rand_row,rand_col)), (moves_row[rand_index],moves_col[rand_index])):
-                        ai_turn = False
-
     #handle mouse click
     def handleEvent(self, event):
         #handle event on board tiles
@@ -480,7 +446,7 @@ class Board:
                             if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
                                 #whenever the player's turn is over.. then the AI will take action
                                 pygame.time.wait(500)
-                                self.AImove()
+                                self.ai.AImove()
                 #if mouse exited a button
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
