@@ -2,6 +2,7 @@ class Piece:
 
     alliance = None
     position = None
+    rank = None
     path = None
 
     def __init__(self):
@@ -9,6 +10,9 @@ class Piece:
     
     def toString(self):
         return self.__class__.__name__
+
+    def getRank(self):
+        return self.rank
 
     def getPath(self):
         return self.path
