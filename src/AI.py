@@ -115,15 +115,13 @@ class AI():
         print(enemies)
         willLoseTo=0
         for item in enemies:
-            for key in self.rankData.keys():
-                if item == key:
-                    enemyRank=self.rankData.values()
+            enemyRank=self.rankData[item]
             print(myRank)
-            if myRank < enemyRank:
-                willLoseTo=willLoseTo + self.pieceData[key].values()
+            if myRank < enemyRank[0]:
+                willLoseTo=willLoseTo+1
 
-        success=self.pieceData[piece].values()/willLoseTo
-        print("Success rate:" + success)
+        success=willLoseTo/len(enemies)
+        print("Success rate:" + str(success))
         if success > 0.49:
             winRate=success
         else:
@@ -136,25 +134,29 @@ class AI():
         currentRow=val[3]
         currentCol=val[4]
         attack=0
+        move=0
         print(key)
-        temp=self.rankData[key].values()
-        temp2=self.prediction[chosen]
         
         for i in range(self.brd.numRow):  #i ,j = destination
             for j in range(self.brd.numCol): #row= 12, column = 5
                 action=self.brd.checkAvailableMovement(i,j,key,currentRow,currentCol)
 
                 #calculates payoff
-                move=i-currentRow #reverse because start from ai moving downwards      
+                if action != None:
+                    move=i-currentRow #reverse because start from ai moving downwards , payoff for moving towards the enemy flag     
                 
                 if action == "attack":
                     chosen=self.brd.tiles[i][j].getPiece()
-                    attack=self.calSuccess(key,temp,temp2) #my rank, opponents rank
+                    temp2=self.prediction[chosen]
+                    attack=self.calSuccess(key,key.getRank(),temp2) #my rank, opponents rank
                 payOff=move + attack
-                valueOfMove[payOff]=[i,j]        
+                valueOfMove[(i,j)]=[payOff]        
+                attack=0
+                move=0
 
-        bestPayOff=max(valueOfMove.keys())
-        destination=valueOfMove[bestPayOff]
+        
+        bestPayOff=max(valueOfMove.values())
+        destination=list(valueOfMove.keys())[list(valueOfMove.values()).index(bestPayOff)]
 
         print(bestPayOff)
         print(destination)
