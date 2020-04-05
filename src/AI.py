@@ -111,17 +111,13 @@ class AI():
         print(self.playerDeadPieces)
 
     def calSuccess(self,piece,myRank,enemies):
-        print("TESTLINE 1")
-        print(enemies)
         willLoseTo=0
         for item in enemies:
             enemyRank=self.rankData[item]
-            print(myRank)
             if myRank < enemyRank[0]:
                 willLoseTo=willLoseTo+1
 
         success=willLoseTo/len(enemies)
-        print("Success rate:" + str(success))
         if success > 0.49:
             winRate=success
         else:
@@ -135,7 +131,6 @@ class AI():
         currentCol=val[4]
         attack=0
         move=0
-        print(key)
         
         for i in range(self.brd.numRow):  #i ,j = destination
             for j in range(self.brd.numCol): #row= 12, column = 5
@@ -153,14 +148,12 @@ class AI():
                 valueOfMove[(i,j)]=[payOff]        
                 attack=0
                 move=0
-
         
         bestPayOff=max(valueOfMove.values())
+        print("sds")
         destination=list(valueOfMove.keys())[list(valueOfMove.values()).index(bestPayOff)]
 
-        print(bestPayOff)
-        print(destination)
-        return bestPayOff,destination
+        return bestPayOff,destination,(currentRow,currentCol)
 
     def chooseMove(self):
         pieces={}
@@ -171,13 +164,12 @@ class AI():
                     pieces[chosen]=[0 , 0 , 0 , i , j]  #how to have position  =[bestPayOff,destination,position]
               
         for item in pieces:
-            print (item)
             pieces.update({item:self.bestMove(item,pieces[item])})
 
-        bestPlay=max(pieces, key=pieces.get)
-        print(pieces)
+        bestPlay=max(pieces, key=pieces.get) #what piece i should move
         print(bestPlay)
-        #return bestPlay
+        print(pieces)
+        return bestPlay, pieces[bestPlay][1][0],pieces[bestPlay][1][1],pieces[bestPlay][2][0],pieces[bestPlay][2][1]
 
     def placePieces(self):
         for j in range(self.brd.numCol):
@@ -190,28 +182,8 @@ class AI():
     #take action
     def makeMove(self):
         print('it is now AI turn')
-        self.chooseMove()
-        ai_turn = True
-        while ai_turn == True:
-            rand_row = random.randint(0,11)
-            rand_col = random.randint(0,4)
+        self.currentPiece,dest_row,dest_col,ori_row,ori_col=self.chooseMove()
 
-            moves_row = []
-            moves_col = []
-            self.currentPiece = self.brd.tiles[rand_row][rand_col].getPiece()
-
-            if self.currentPiece != None and self.currentPiece.getAlliance() == 1 and self.currentPiece.toString() != 'Flag' and self.currentPiece.toString() != 'Landmine':
-                self.brd.tiles[rand_row][rand_col].setPiece(None)
-                #check all possible moves of the random piece by scanning the whole board
-                for i in range(self.brd.numRow):
-                    for j in range(self.brd.numCol):
-                        action = self.brd.checkAvailableMovement(i,j,self.currentPiece,rand_row,rand_col)
-                        if action != None and action != "no move":
-                            moves_row.append(i)
-                            moves_col.append(j)
-                #Now pick a random move from the array moves
-                if len(moves_col):
-                    rand_index = random.randint(0,(len(moves_col)-1))
-                    if self.brd.takeAction(self.currentPiece, (self.brd.checkAvailableMovement(moves_row[rand_index],moves_col[rand_index],self.currentPiece,rand_row,rand_col)), (moves_row[rand_index],moves_col[rand_index])):
-                        ai_turn = False
-        self.brd.tiles[rand_row][rand_col].setOutline(True, self.brd.blue)
+        self.brd.tiles[ori_row][ori_col].setPiece(None)
+        if self.brd.takeAction(self.currentPiece,(self.brd.checkAvailableMovement(dest_row,dest_col,self.currentPiece,ori_row,ori_col)), (dest_row,dest_col)):
+            self.brd.tiles[dest_row][dest_col].setOutline(True, self.brd.blue)
