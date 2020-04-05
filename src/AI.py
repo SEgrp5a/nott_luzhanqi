@@ -110,18 +110,31 @@ class AI():
             print(self.prediction[item])
         print(self.playerDeadPieces)
 
+    def calSuccess(self):
 
-    def calPayOff(self,):
-        for j in range(self.numCol):
-            for i in range(self.numRow):
-                action=self.brd.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol)
-                
+        return 3
 
-        return payOff
+    def calPayOff(self,currentRow,destRow):
+        move=0
+        attack=0
+        
+        move = currentRow-destRow
+        attack= self.calSuccess()
 
-    def bestMove(self,piece):
+        return move + attack
+
+    def bestMove(self,key,val):
         valueOfMove={}
-        self.calPayOff
+        currentRow=val[3]
+        currentCol=val[4]
+        #i ,j = destination
+        for j in range(self.brd.numCol):
+            for i in range(self.brd.numRow):
+                action=self.brd.checkAvailableMovement(i,j,key,currentRow,currentCol)
+                if action == "move" or action == "attack":
+                    a=self.calPayOff(currentRow,i)
+        
+        b=[6,7]
         return a,b
 
     def chooseMove(self):
@@ -131,17 +144,17 @@ class AI():
             for j in range(self.brd.numCol):
                 if self.brd.tiles[i][j].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() == 1:
                     chosen=self.brd.tiles[i][j].getPiece()
-                    pieces[chosen]=0  #how to have position  =[bestPayOff,position]
+                    pieces[chosen]=[0 , 0 , 0 , i , j]  #how to have position  =[bestPayOff,destination,position]
                     counter=counter+1
                 if counter == 3:
                      break
             if counter == 3:
                 break
         for item in pieces:
-            pieces.update({item:self.bestMove(item)})
+            print (item)
+            pieces.update({item:self.bestMove(item,pieces[item])})
 
         bestPlay=max(pieces, key=pieces.get)
-
         #return bestPlay
 
     def placePieces(self):
