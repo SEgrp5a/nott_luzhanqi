@@ -132,18 +132,28 @@ class AI():
         attack=0
         move=0
         
+        actions = []
+        for i in range(self.brd.numRow):
+            temp = []
+            for j in range(self.brd.numCol):
+                self.brd.tiles[currentRow][currentCol].setPiece(None)
+                temp.append(self.brd.checkAvailableMovement(i,j,key,currentRow,currentCol))
+                self.brd.tiles[currentRow][currentCol].setPiece(key)
+            actions.append(temp)
+        print(actions)
+
         for i in range(self.brd.numRow):  #i ,j = destination
             for j in range(self.brd.numCol): #row= 12, column = 5
+                self.brd.tiles[currentRow][currentCol].setPiece(None)
                 action=self.brd.checkAvailableMovement(i,j,key,currentRow,currentCol)
-
+                self.brd.tiles[currentRow][currentCol].setPiece(key)
                 #calculates payoff
                 if action != None:
                     move=i-currentRow #reverse because start from ai moving downwards , payoff for moving towards the enemy flag     
                 
                 if action == "attack":
                     chosen=self.brd.tiles[i][j].getPiece()
-                    temp2=self.prediction[chosen]
-                    attack=self.calSuccess(key,key.getRank(),temp2) #my rank, opponents rank
+                    attack=self.calSuccess(key,key.getRank(),self.prediction[chosen]) #my rank, opponents rank
                 payOff=move + attack
                 valueOfMove[(i,j)]=[payOff]        
                 attack=0
@@ -183,7 +193,7 @@ class AI():
     def makeMove(self):
         print('it is now AI turn')
         self.currentPiece,dest_row,dest_col,ori_row,ori_col=self.chooseMove()
-
         self.brd.tiles[ori_row][ori_col].setPiece(None)
+
         if self.brd.takeAction(self.currentPiece,(self.brd.checkAvailableMovement(dest_row,dest_col,self.currentPiece,ori_row,ori_col)), (dest_row,dest_col)):
             self.brd.tiles[dest_row][dest_col].setOutline(True, self.brd.blue)

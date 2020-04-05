@@ -4,6 +4,7 @@ import random
 from button import *
 from pieces import *
 from AI import AI
+from AI import AI
 
 class Board:
     def __init__(self,width,height,numRow,numCol):
