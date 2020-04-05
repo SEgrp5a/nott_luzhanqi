@@ -110,6 +110,40 @@ class AI():
             print(self.prediction[item])
         print(self.playerDeadPieces)
 
+
+    def calPayOff(self,):
+        for j in range(self.numCol):
+            for i in range(self.numRow):
+                action=self.brd.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol)
+                
+
+        return payOff
+
+    def bestMove(self,piece):
+        valueOfMove={}
+        self.calPayOff
+        return a,b
+
+    def chooseMove(self):
+        pieces={}
+        counter = 0
+        for i in range(self.brd.numRow):
+            for j in range(self.brd.numCol):
+                if self.brd.tiles[i][j].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() == 1:
+                    chosen=self.brd.tiles[i][j].getPiece()
+                    pieces[chosen]=0  #how to have position  =[bestPayOff,position]
+                    counter=counter+1
+                if counter == 3:
+                     break
+            if counter == 3:
+                break
+        for item in pieces:
+            pieces.update({item:self.bestMove(item)})
+
+        bestPlay=max(pieces, key=pieces.get)
+
+        #return bestPlay
+
     def placePieces(self):
         for j in range(self.brd.numCol):
             tempY = 11 # -1 for each iteration to simulate mirroring
@@ -145,3 +179,4 @@ class AI():
                     if self.brd.takeAction(self.currentPiece, (self.brd.checkAvailableMovement(moves_row[rand_index],moves_col[rand_index],self.currentPiece,rand_row,rand_col)), (moves_row[rand_index],moves_col[rand_index])):
                         ai_turn = False
         self.brd.tiles[rand_row][rand_col].setOutline(True, self.brd.blue)
+        self.chooseMove()
