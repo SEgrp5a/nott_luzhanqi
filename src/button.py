@@ -142,7 +142,7 @@ class SelectionPaneButton(Button):
 
     def removePiece(self):
         if len(self.pieces) > 0:
-            self.pieces.pop()
+            self.pieces.pop(0)
 
     def draw(self, surface):
         super().draw(surface)

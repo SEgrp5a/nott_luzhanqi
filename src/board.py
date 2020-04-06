@@ -3,6 +3,7 @@ import operator
 import random
 from button import *
 from pieces import *
+from AI import AI
 
 class Board:
     def __init__(self,width,height,numRow,numCol):
@@ -45,6 +46,8 @@ class Board:
         self.doneButton = Button(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
         #record game phase
         self.gamePhase = 1
+        #create AI
+        self.ai = None
 
     def getGamePhase():
         return self.gamePhase
@@ -103,7 +106,7 @@ class Board:
         i = 0
         for item in self.pieceData:
             selectionPaneTiles[i] = SelectionPaneButton(x, y, 50, 50, color = (255,255,0), nPieces = self.pieceData[item][0])
-            for j in range(self.pieceData[item][0]):
+            for _ in range(self.pieceData[item][0]):
                 selectionPaneTiles[i].addPiece(self.spawnPiece(0, item, selectionPaneTiles[i].getPos()))
             selectionPaneTiles[i].setFlag(item)
             i = i + 1
@@ -145,26 +148,19 @@ class Board:
 
         return spawn
 
-    def genAiPieces(self):
-        for j in range(self.numCol):
-            tempY = 11 # -1 for each iteration to simulate mirroring
-            for i in range(6):
-                if self.tiles[tempY][j].getPiece():
-                    self.tiles[i][j].setPiece(self.spawnPiece(1, self.tiles[tempY][j].getPiece().toString(), self.tiles[i][j].getPos()))
-                tempY = tempY - 1
-        self.gamePhase = 2
-
     def checkDone(self):
         complete=False
         if self.currentPiece == None:
             for k in self.pieceData:
                 if self.pieceData[k][0] == 0:
                     complete=True;
-                else:
-                    # can do a pop-up to let user know not all pieces are set
-                    break
+                #else:
+                #    # can do a pop-up to let user know not all pieces are set
+                #    break
             if complete==True:
-                self.genAiPieces()
+                self.ai = AI(self)  #initialize AI
+                self.ai.placePieces()
+                self.gamePhase = 2
 
     #Draw the entire interface
     def draw(self,surface):
@@ -388,34 +384,6 @@ class Board:
                 action = None
         return action
 
-    #AI random move
-    def AImove(self):
-        print('it is now AI turn')
-        ai_turn = True
-        randomPiece = None
-        while ai_turn == True:
-            rand_row = random.randint(0,11)
-            rand_col = random.randint(0,4)
-
-            moves_row = []
-            moves_col = []
-            randomPiece = self.tiles[rand_row][rand_col].getPiece()
-
-            if randomPiece != None and randomPiece.getAlliance() == 1 and randomPiece.toString() != 'Flag' and randomPiece.toString() != 'Landmine':
-                self.tiles[rand_row][rand_col].setPiece(None)
-                #check all possible moves of that single randomPiece by scanning the whole board
-                for i in range(self.numRow):
-                    for j in range(self.numCol):
-                        action = self.checkAvailableMovement(i,j,randomPiece,rand_row,rand_col)
-                        if action != None and action != "no move":
-                            moves_row.append(i)
-                            moves_col.append(j)
-                #Now pick a random move from the array moves
-                if len(moves_col):
-                    rand_index = random.randint(0,(len(moves_col)-1))
-                    if self.takeAction(randomPiece, (self.checkAvailableMovement(moves_row[rand_index],moves_col[rand_index],randomPiece,rand_row,rand_col)), (moves_row[rand_index],moves_col[rand_index])):
-                        ai_turn = False
-
     #handle mouse click
     def handleEvent(self, event):
         #handle event on board tiles
@@ -478,9 +446,12 @@ class Board:
                                 self.tiles[i][j].setPiece(None)
                         else:
                             if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
-                                #whenever the player's turn is over.. then the AI will take action
+                                self.currentPiece = None
+                                self.pieceRow = None
+                                self.pieceCol = None
+                                #whenever the player's turn is over.. then the AI will make move
                                 pygame.time.wait(500)
-                                self.AImove()
+                                self.ai.makeMove()
                 #if mouse exited a button
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
@@ -546,78 +517,88 @@ class Board:
             self.doneButton.update(self.doneButton.getColor(),outline_done,outlineColor_done)
 
     #referee will decide on the result of an attack action
-    def referee(self,piece1, piece2):
-        winner = None
-        loser = None
+    def referee(self, attackPiece, defendPiece):
+        winner = None   #winner = None when draw
+        loser = None    #loser = player piece when draw
         #checking alliances
-        if piece1.alliance == piece2.alliance:
+        if attackPiece.getAlliance() == defendPiece.getAlliance():
             print('You can not attack your own piece!\n')
-        elif piece1.toString() != "Flag" and piece2.toString() != "Flag":
+        elif attackPiece.toString() != "Flag" and defendPiece.toString() != "Flag":
             #if engineer steps on a landmine
-            if piece1.toString() == "Landmine" and piece2.toString() == "Engineer" or piece1.toString() == "Engineer" and piece2.toString() == "Landmine":
+            if attackPiece.toString() == "Landmine" and defendPiece.toString() == "Engineer" or attackPiece.toString() == "Engineer" and defendPiece.toString() == "Landmine":
                 print("Engineer has disarmed the landmine!\n")
-                if piece1.toString() == "Engineer":
-                    winner = piece1
-                    loser = piece2
+                if attackPiece.toString() == "Engineer":
+                    winner = attackPiece
+                    loser = defendPiece
                 else:
-                    winner = piece2
-                    loser = piece1
-            #if Grenade attacks any piece
-            elif piece1.toString() == "Grenade" or piece2.toString() == "Grenade":
+                    winner = defendPiece
+                    loser = attackPiece
+            #if Grenade or Landmine attacks any piece
+            elif attackPiece.toString() == "Grenade" or attackPiece.toString() == "Landmine" or defendPiece.toString() == "Grenade" or defendPiece.toString() == "Landmine":
                 print("Both pieces have been taken")
-                loser = piece1
+                if attackPiece.getAlliance() == 0:
+                    loser = attackPiece
+                    self.ai.lostPiece = defendPiece
+                else:
+                    loser = defendPiece
+                    self.ai.lostPiece = attackPiece
             #if Grenade lands on Landmine
-            elif piece1.toString() == "Landmine" and piece2.toString() == "Grenade" or piece1.toString() == "Grenade" and piece2.toString() == "Landmine":
-                print("Both Landmine and Grenade are GONE!\n")
-                loser = piece1
+            #elif piece1.toString() == "Landmine" and piece2.toString() == "Grenade" or piece1.toString() == "Grenade" and piece2.toString() == "Landmine":
+            #    print("Both Landmine and Grenade are GONE!\n")
+            #    loser = piece1  #redundant
             #every other pieces of different or same rank battling
-            elif piece1.rank < piece2.rank:
-                print(piece1.toString() + " has taken " + piece2.toString() +"!\n")
-                winner = piece1
-                loser = piece2
-            elif piece2.rank < piece1.rank:
-                print(piece2.toString() + " has taken " + piece1.toString() + "!\n")
-                winner = piece2
-                loser = piece1
-            elif piece2.rank == piece1.rank:
-                print(piece2.toString() + " and " + piece1.toString() + " have both been taken!\n")
-                loser = piece1
-                loser.alliance=0
-        #if Flag is captured
-        elif piece1.toString() == "Flag":
-            print(piece2.toString() + " has captured the Flag\n")
-        elif piece2.toString() == "Flag":
-            print(piece1.toString() + " has captured the Flag\n")
+            elif attackPiece.getRank() < defendPiece.getRank():
+                print(attackPiece.toString() + " has taken " + defendPiece.toString() +"!\n")
+                winner = attackPiece
+                loser = defendPiece
+            elif defendPiece.getRank() < attackPiece.getRank():
+                print(defendPiece.toString() + " has taken " + attackPiece.toString() + "!\n")
+                winner = defendPiece
+                loser = attackPiece
+            elif defendPiece.getRank() == attackPiece.getRank():
+                print(defendPiece.toString() + " and " + attackPiece.toString() + " have both been taken!\n")
+                if attackPiece.getAlliance() == 0:
+                    loser = attackPiece
+                    self.ai.lostPiece = defendPiece
+                else:
+                    loser = defendPiece
+                    self.ai.lostPiece = attackPiece
+        ##if Flag is captured
+        #elif piece1.toString() == "Flag":
+        #    print(piece2.toString() + " has captured the Flag\n")   #attacking piece will not be Flag (flag cannot move)
+        elif defendPiece.toString() == "Flag":
+            print(attackPiece.toString() + " has captured the Flag\n")
 
-        if loser.alliance == 0  and self.pieceData[loser.toString()][0] == 0:
+        if loser.getAlliance() == 0  and self.pieceData[loser.toString()][0] == 0:
             k = 0
             for item in self.pieceData:
                 if (self.selectionPaneTiles[k].getFlag() == loser.toString()):
                     self.selectionPaneTiles[k].addPiece(loser)
                 k=k+1
 
-        if loser.alliance == 0: # only draw my own piece
+        if loser.getAlliance() == 0: # only draw my own piece
             self.pieceData[loser.toString()][0]=self.pieceData[loser.toString()][0]+1
 
-        return winner
+        return winner,loser
 
     #called whenever an action is executed
     def takeAction(self, piece, action, dest):
-        replacement = piece
+        winner = None
+        loser = None
         i = dest[0]
         j = dest[1]
         if action:
             if action == "attack":
                 attackPiece = piece
                 defendPiece = self.tiles[i][j].getPiece()
-                replacement = self.referee(attackPiece, defendPiece)   #referee should return either the winning piece or None if draw
-            self.tiles[i][j].setPiece(replacement)
-            self.currentPiece = None
-            self.pieceRow = None
-            self.pieceCol = None
+                winner, loser = self.referee(attackPiece, defendPiece)  #winner = None, loser = attackPiece if draw
+                self.tiles[i][j].setPiece(winner)
+            else:
+                self.tiles[i][j].setPiece(piece)
             if action == "no move":
                 return False
             else:
+                self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
                 return True
         else:
             return False
