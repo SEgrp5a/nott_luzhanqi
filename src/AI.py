@@ -111,12 +111,32 @@ class AI():
         print(self.playerDeadPieces)
 
     def placePieces(self):
-        for j in range(self.brd.numCol):
-            tempY = 11 # -1 for each iteration to simulate mirroring
-            for i in range(int(self.brd.numRow/2)):
-                if self.brd.tiles[tempY][j].getPiece():
-                    self.brd.tiles[i][j].setPiece(self.brd.spawnPiece(1, self.brd.tiles[tempY][j].getPiece().toString(), self.brd.tiles[i][j].getPos()))
-                tempY = tempY - 1
+        self.brd.spawnPiece(1, "Commander", (0,0))
+        self.brd.spawnPiece(1, "Captain", (0,1))
+        self.brd.spawnPiece(1, "Major", (0,2))
+        self.brd.spawnPiece(1, "Flag", (0,3))
+        self.brd.spawnPiece(1, "Landmine", (0,4))
+        self.brd.spawnPiece(1, "Landmine", (1,0))
+        self.brd.spawnPiece(1, "Commander", (1,1))
+        self.brd.spawnPiece(1, "Engineer", (1,2))
+        self.brd.spawnPiece(1, "Marshal", (1,3))
+        self.brd.spawnPiece(1, "Engineer", (1,4))
+        self.brd.spawnPiece(1, "Grenade", (2,0))
+        self.brd.spawnPiece(1, "Captain", (2,2))
+        self.brd.spawnPiece(1, "Colonel", (2,4))
+        self.brd.spawnPiece(1, "Engineer", (3,0))
+        self.brd.spawnPiece(1, "Lieutenant", (3,1))
+        self.brd.spawnPiece(1, "Landmine", (3,3))
+        self.brd.spawnPiece(1, "Lieutenant", (3,4))
+        self.brd.spawnPiece(1, "Grenade", (4,0))
+        self.brd.spawnPiece(1, "General", (4,2))
+        self.brd.spawnPiece(1, "Commander", (4,4))
+        self.brd.spawnPiece(1, "Brigadier", (5,0))
+        self.brd.spawnPiece(1, "Colonel", (5,1))
+        self.brd.spawnPiece(1, "Captain", (5,2))
+        self.brd.spawnPiece(1, "Major", (5,3))
+        self.brd.spawnPiece(1, "Brigadier", (5,4))
+
 
     #take action
     def makeMove(self):
