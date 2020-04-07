@@ -110,75 +110,73 @@ class AI():
             print(self.prediction[item])
         print(self.playerDeadPieces)
 
-    def calSuccess(self,piece,myRank,enemies):
+    def calSuccess(self,piece,myRank,enemies): # receives current piece,current piece rank, list of pieces the opponent can be
         willLoseTo=0
+        worth=0 # for if my piece is grenade
         for item in enemies:
             enemyRank=self.rankData[item]
-            if myRank < enemyRank[0]:
-                willLoseTo=willLoseTo+1
+            if str(item)=="Flag": # If the enemy piece has a chance to be a flag, attack immediately
+                return 1
+            elif str(piece)=="Grenade" and enemyRank[0] < 4: # grenade should try to fight pieces with higher power (lieutenant and above)
+                worth = worth + 1 # could be a high level piece
+            elif myRank > enemyRank[0]:  # rank higher = power lower
+                willLoseTo=willLoseTo+1 # records the pieces it will lose to
 
-        success=willLoseTo/len(enemies)
-        if success > 0.49:
-            winRate=success
+        if str(piece)=="Grenade":
+            if (len(enemies) - worth) == 0: # unless I know it is a lieutenant or higher power, i will not attack
+                return 1
+            else:
+                return 0
         else:
-            winRate=0-success
+            success=1-(willLoseTo/len(enemies)) # returns the probability of winning the battle
+        
+        if success > 0.74: # if it has a 75% chance of winning
+            return success
+        else:
+            return (0-success) #returns the success rate as a negative value to deter the move
 
-        return winRate
-
-    def bestMove(self,key,val):
-        valueOfMove={}
+    def bestMove(self,key,val): 
+        valueOfMove={} # dictionary storing the payoff of each move
         currentRow=val[3]
         currentCol=val[4]
-        attack=0
-        move=0
-        
-        actions = []
-        for i in range(self.brd.numRow):
-            temp = []
-            for j in range(self.brd.numCol):
-                self.brd.tiles[currentRow][currentCol].setPiece(None)
-                temp.append(self.brd.checkAvailableMovement(i,j,key,currentRow,currentCol))
-                self.brd.tiles[currentRow][currentCol].setPiece(key)
-            actions.append(temp)
-        print(actions)
+        attack=0 # incentive to attack
+        move=0 #i ncentive to move
 
         for i in range(self.brd.numRow):  #i ,j = destination
-            for j in range(self.brd.numCol): #row= 12, column = 5
-                self.brd.tiles[currentRow][currentCol].setPiece(None)
-                action=self.brd.checkAvailableMovement(i,j,key,currentRow,currentCol)
+            for j in range(self.brd.numCol):
+                self.brd.tiles[currentRow][currentCol].setPiece(None) # to ignore counting the current place as a dead end 
+                action=self.brd.checkAvailableMovement(i,j,key,currentRow,currentCol) # checks for all available moves in the map
                 self.brd.tiles[currentRow][currentCol].setPiece(key)
                 #calculates payoff
-                if action != None:
+                if action != None: # if the piece can move here or attack this piece
                     move=i-currentRow #reverse because start from ai moving downwards , payoff for moving towards the enemy flag     
-                
-                if action == "attack":
+            
+                if action == "attack": #if there is a piece on this tile to attack
                     chosen=self.brd.tiles[i][j].getPiece()
-                    attack=self.calSuccess(key,key.getRank(),self.prediction[chosen]) #my rank, opponents rank
+                    attack=self.calSuccess(key,key.getRank(),self.prediction[chosen]) # calculates the possibility of winning the fight
                 payOff=move + attack
-                valueOfMove[(i,j)]=[payOff]        
+                valueOfMove[(i,j)]=[payOff]  #stores the payoff at the current destination
                 attack=0
                 move=0
-        
-        bestPayOff=max(valueOfMove.values())
-        print("sds")
-        destination=list(valueOfMove.keys())[list(valueOfMove.values()).index(bestPayOff)]
 
-        return bestPayOff,destination,(currentRow,currentCol)
+        bestPayOff=max(valueOfMove.values()) #finds the best payoff, if multiple choices, take first choice
+        destination=list(valueOfMove.keys())[list(valueOfMove.values()).index(bestPayOff)] #returns the destination with the best payoff
+
+        return bestPayOff,destination,(currentRow,currentCol) 
 
     def chooseMove(self):
-        pieces={}
+        pieces={} # stores dictionary with pieces AI can move as key
         for i in range(self.brd.numRow):
-            for j in range(self.brd.numCol):
-                if self.brd.tiles[i][j].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() == 1:
+            for j in range(self.brd.numCol): # check entire board for AI's piece
+                if self.brd.tiles[i][j].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() == 1: # if the piece is AI's piece
                     chosen=self.brd.tiles[i][j].getPiece()
-                    pieces[chosen]=[0 , 0 , 0 , i , j]  #how to have position  =[bestPayOff,destination,position]
+                    pieces[chosen]=[0 , 0 , 0 , i , j] # initialization of bestPayOff,destination [][], current position[][]
               
         for item in pieces:
-            pieces.update({item:self.bestMove(item,pieces[item])})
+            pieces.update({item:self.bestMove(item,pieces[item])}) # finds the best move and payoff of the move for each AI's piece
 
-        bestPlay=max(pieces, key=pieces.get) #what piece i should move
-        print(bestPlay)
-        print(pieces)
+        bestPlay=max(pieces, key=pieces.get) # returns the piece that I should move based on highest payoff
+
         return bestPlay, pieces[bestPlay][1][0],pieces[bestPlay][1][1],pieces[bestPlay][2][0],pieces[bestPlay][2][1]
 
     def placePieces(self):
@@ -192,8 +190,9 @@ class AI():
     #take action
     def makeMove(self):
         print('it is now AI turn')
-        self.currentPiece,dest_row,dest_col,ori_row,ori_col=self.chooseMove()
-        self.brd.tiles[ori_row][ori_col].setPiece(None)
+        # deciding which piece to move and to where
+        self.currentPiece,dest_row,dest_col,ori_row,ori_col=self.chooseMove() # returns piece to move, destination of move, current location of piece
+        self.brd.tiles[ori_row][ori_col].setPiece(None) # removes the image of the piece before movement
 
         if self.brd.takeAction(self.currentPiece,(self.brd.checkAvailableMovement(dest_row,dest_col,self.currentPiece,ori_row,ori_col)), (dest_row,dest_col)):
             self.brd.tiles[dest_row][dest_col].setOutline(True, self.brd.blue)
