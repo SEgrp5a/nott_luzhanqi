@@ -200,3 +200,4 @@ class AI():
 
         if self.brd.takeAction(self.currentPiece,(self.brd.checkAvailableMovement(dest_row,dest_col,self.currentPiece,ori_row,ori_col)), (dest_row,dest_col)):
             self.brd.tiles[dest_row][dest_col].setOutline(True, self.brd.blue)
+        return (ori_row,ori_col),(dest_row,dest_col)
