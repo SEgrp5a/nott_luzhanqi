@@ -116,10 +116,10 @@ class Button():
 
         #draw piece
         if self.piece != None:
-            if self.piece.getAlliance() == 0:   #if is player piece
-                image = pygame.image.load(self.piece.getPath())
-            elif self.piece.getAlliance() == 1: #if is AI piece
-                image = pygame.image.load("bin\\Piece Shadow.png")
+            #if self.piece.getAlliance() == 0:   #if is player piece
+            image = pygame.image.load(self.piece.getPath())
+            #elif self.piece.getAlliance() == 1: #if is AI piece
+                #image = pygame.image.load("bin\\Piece Shadow.png")
             surface.blit(image, (self.x + (self.width / 2 - image.get_width() / 2), self.y + (self.height / 2 - image.get_height() / 2)))
 
         #draw outline
