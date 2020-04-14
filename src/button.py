@@ -133,6 +133,8 @@ class SelectionPaneButton(Button):
         return super().__init__(x, y, width, height, color=color, transparent=transparent, outline=outline, outlineColor=outlineColor, text=text, textColor=textColor)
 
     def getPiece(self):
+        if self.pieces == []:
+            return None
         return self.pieces[0]
 
     def addPiece(self, piece):
@@ -143,6 +145,9 @@ class SelectionPaneButton(Button):
     def removePiece(self):
         if len(self.pieces) > 0:
             self.pieces.pop()
+
+    def removeAll(self):
+        self.pieces = []
 
     def draw(self, surface):
         super().draw(surface)
