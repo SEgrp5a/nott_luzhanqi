@@ -46,7 +46,7 @@ class Board:
         #Auto player piece setup 
         self.plySetup1 = Button(1200-575,716-55,170,45,self.green,text="Pre-setup 1")
         self.plySetup2 = Button(1200-345,716-55,170,45,self.green,text="Pre-setup 2")
-        self.clear = Button(1200-425,716-110,100,40,self.green,text="Clear")
+        self.clear = Button(1200-460,716-110,170,45,self.green,text="Undo Setup")
         #record game phase
         self.gamePhase = 1
 
@@ -217,7 +217,7 @@ class Board:
         x = 0
         for i in range(30):
             if x < self.numCol:
-                self.tiles[y][x].setPiece(self.spawnPiece(0,None,self.tiles[y][x].getPos))
+                self.tiles[y][x].setPiece(None)
                 x = x + 1
             if x == self.numCol:
                 x = 0
@@ -234,7 +234,7 @@ class Board:
                           "Captain": [3],
                           "Commander": [3],
                           "Engineer": [3]}
-        self.generateSelectionPane()
+        self.selectionPaneTiles = self.generateSelectionPane()
 
 
     #Draw the entire interface
