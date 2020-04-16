@@ -4,7 +4,6 @@ import random
 from button import *
 from pieces import *
 from AI import AI
-from AI import AI
 
 class Board:
     def __init__(self,width,height,numRow,numCol):
@@ -49,6 +48,9 @@ class Board:
         self.gamePhase = 1
         #create AI
         self.ai = None
+        #AI condition
+        self.aiMoved = False
+        self.aiLastMove = [None, None] #[start, dest]
 
     def getGamePhase():
         return self.gamePhase
@@ -416,9 +418,10 @@ class Board:
                 #if button is clicked
                 if 'down' in self.tiles[i][j].handleEvent(event):
                     outline_tile = True
-                    outlineColor_tile = self.blue           
+                    outlineColor_tile = self.blue
                 #if button is clicked & released
                 if 'click' in self.tiles[i][j].handleEvent(event):
+                    self.aiMoved = False
                     #setup phase
                     if self.gamePhase == 1:
                         #take the piece if the tile already contain a piece
@@ -447,19 +450,23 @@ class Board:
                                 self.tiles[i][j].setPiece(None)
                         else:
                             if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
-                                self.currentPiece = None
-                                self.pieceRow = None
-                                self.pieceCol = None
                                 #whenever the player's turn is over.. then the AI will make move
                                 pygame.time.wait(500)
-                                self.ai.makeMove()
+                                start,dest = self.ai.makeMove()
+                                self.aiLastMove = [start, dest]
+                                self.aiMoved = True
                 #if mouse exited a button
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
                 self.tiles[i][j].update(self.tiles[i][j].getColor(), outline_tile, outlineColor_tile)
         
-        if self.gamePhase == 2 and self.currentPiece:
-            self.tiles[self.pieceRow][self.pieceCol].setOutline(True, self.blue)
+            #Highlight orgin position
+            if self.gamePhase == 2 and self.currentPiece:
+                self.tiles[self.pieceRow][self.pieceCol].setOutline(True, self.blue)   
+            #Highlight AI's last move
+            if self.aiMoved:
+                self.tiles[self.aiLastMove[0][0]][self.aiLastMove[0][1]].setOutline(True, self.blue)
+                self.tiles[self.aiLastMove[1][0]][self.aiLastMove[1][1]].setOutline(True, self.blue)
 
         #handle event on selection pane
         if self.gamePhase == 1:
@@ -596,10 +603,13 @@ class Board:
                 self.tiles[i][j].setPiece(winner)
             else:
                 self.tiles[i][j].setPiece(piece)
+            self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
+            self.currentPiece = None
+            self.pieceRow = None
+            self.pieceCol = None
             if action == "no move":
                 return False
             else:
-                self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
                 return True
         else:
             return False

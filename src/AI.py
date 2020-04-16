@@ -39,7 +39,7 @@ class AI():
 
     def genPrediction(self):
         prediction = {}
-        
+
         for i in range(int(self.brd.numRow/2),self.brd.numRow):
             for j in range(self.brd.numCol):
                 default = ["Marshal", "General", "Lieutenant",
@@ -144,13 +144,13 @@ class AI():
                 return 0
         else:
             success=1-(willLoseTo/len(enemies)) # returns the probability of winning the battle
-        
+
         if success > 0.74: # if it has a 75% chance of winning
             return success
         else:
             return (0-success) #returns the success rate as a negative value to deter the move
 
-    def bestMove(self,key,val): 
+    def bestMove(self,key,val):
         valueOfMove={} # dictionary storing the payoff of each move
         currentRow=val[3]
         currentCol=val[4]
@@ -159,18 +159,13 @@ class AI():
 
         for i in range(self.brd.numRow):  #i ,j = destination
             for j in range(self.brd.numCol):
-                self.brd.tiles[currentRow][currentCol].setPiece(None) # to ignore counting the current place as a dead end 
+                self.brd.tiles[currentRow][currentCol].setPiece(None) # to ignore counting the current place as a dead end
                 action=self.brd.checkAvailableMovement(i,j,key,currentRow,currentCol) # checks for all available moves in the map
                 self.brd.tiles[currentRow][currentCol].setPiece(key)
                 #calculates payoff
                 if action != None: # if the piece can move here or attack this piece
-<<<<<<< Updated upstream
-                    move=i-currentRow #reverse because start from ai moving downwards , payoff for moving towards the enemy flag     
-            
-=======
                     move=self.calcMove(i,j,currentRow,currentCol) #reverse because start from ai moving downwards , payoff for moving towards the enemy flag
-
->>>>>>> Stashed changes
+  
                 if action == "attack": #if there is a piece on this tile to attack
                     chosen=self.brd.tiles[i][j].getPiece()
                     attack=self.calcAttack(key,key.getRank(),self.prediction[chosen]) # calculates the possibility of winning the fight
@@ -182,7 +177,7 @@ class AI():
         bestPayOff=max(valueOfMove.values()) #finds the best payoff, if multiple choices, take first choice
         destination=list(valueOfMove.keys())[list(valueOfMove.values()).index(bestPayOff)] #returns the destination with the best payoff
 
-        return bestPayOff,destination,(currentRow,currentCol) 
+        return bestPayOff,destination,(currentRow,currentCol)
 
     def chooseMove(self):
         pieces={} # stores dictionary with pieces AI can move as key
@@ -191,7 +186,7 @@ class AI():
                 if self.brd.tiles[i][j].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() == 1: # if the piece is AI's piece
                     chosen=self.brd.tiles[i][j].getPiece()
                     pieces[chosen]=[0 , 0 , 0 , i , j] # initialization of bestPayOff,destination [][], current position[][]
-              
+
         for item in pieces:
             pieces.update({item:self.bestMove(item,pieces[item])}) # finds the best move and payoff of the move for each AI's piece
 
@@ -200,12 +195,16 @@ class AI():
         return bestPlay, pieces[bestPlay][1][0],pieces[bestPlay][1][1],pieces[bestPlay][2][0],pieces[bestPlay][2][1]
 
     def placePieces(self):
-        for j in range(self.brd.numCol):
-            tempY = 11 # -1 for each iteration to simulate mirroring
-            for i in range(int(self.brd.numRow/2)):
-                if self.brd.tiles[tempY][j].getPiece():
-                    self.brd.tiles[i][j].setPiece(self.brd.spawnPiece(1, self.brd.tiles[tempY][j].getPiece().toString(), self.brd.tiles[i][j].getPos()))
-                tempY = tempY - 1
+        pieceLayout = [["Commander","Landmine","Major","Flag","Captain"],
+                       ["Landmine","Landmine","Engineer","Marshal","Engineer"],
+                       ["Grenade",None,"Captain",None,"Colonel"],
+                       ["Engineer","Lieutenant",None,"Commander","Lieutenant"],
+                       ["Grenade",None,"General",None,"Commander"],
+                       ["Brigadier","Colonel","Captain","Major","Brigadier"]]
+        for i in range(int(self.brd.numRow/2)):
+            for j in range(self.brd.numCol):
+                self.brd.tiles[i][j].setPiece(self.brd.spawnPiece(1, pieceLayout[i][j], self.brd.tiles[i][j].getPos()))
+
 
     #take action
     def makeMove(self):
@@ -216,3 +215,4 @@ class AI():
 
         if self.brd.takeAction(self.currentPiece,(self.brd.checkAvailableMovement(dest_row,dest_col,self.currentPiece,ori_row,ori_col)), (dest_row,dest_col)):
             self.brd.tiles[dest_row][dest_col].setOutline(True, self.brd.blue)
+        return (ori_row,ori_col),(dest_row,dest_col)
