@@ -110,13 +110,28 @@ class AI():
             print(self.prediction[item])
         print(self.playerDeadPieces)
 
-    def calSuccess(self,piece,myRank,enemies): # receives current piece,current piece rank, list of pieces the opponent can be
+    def calcMove(self,row,col,pieceRow,pieceCol):
+        if row == 10 or row == 11:
+            if col == 1 or col == 3:
+                return 5
+            elif row == 11:
+                return 5
+            else:
+                return 4
+        elif self.brd.layout[row][col] == "RW":
+            return 3
+        elif self.brd.layout[row][col] == "CP":
+            return 2
+        else:
+            return 1
+
+    def calcAttack(self,piece,myRank,enemies): # receives current piece,current piece rank, list of pieces the opponent can be
         willLoseTo=0
         worth=0 # for if my piece is grenade
         for item in enemies:
             enemyRank=self.rankData[item]
             if str(item)=="Flag": # If the enemy piece has a chance to be a flag, attack immediately
-                return 1
+                return 10
             elif str(piece)=="Grenade" and enemyRank[0] < 4: # grenade should try to fight pieces with higher power (lieutenant and above)
                 worth = worth + 1 # could be a high level piece
             elif myRank > enemyRank[0]:  # rank higher = power lower
@@ -140,7 +155,7 @@ class AI():
         currentRow=val[3]
         currentCol=val[4]
         attack=0 # incentive to attack
-        move=0 #i ncentive to move
+        move=0 # incentive to move
 
         for i in range(self.brd.numRow):  #i ,j = destination
             for j in range(self.brd.numCol):
@@ -149,11 +164,16 @@ class AI():
                 self.brd.tiles[currentRow][currentCol].setPiece(key)
                 #calculates payoff
                 if action != None: # if the piece can move here or attack this piece
+<<<<<<< Updated upstream
                     move=i-currentRow #reverse because start from ai moving downwards , payoff for moving towards the enemy flag     
             
+=======
+                    move=self.calcMove(i,j,currentRow,currentCol) #reverse because start from ai moving downwards , payoff for moving towards the enemy flag
+
+>>>>>>> Stashed changes
                 if action == "attack": #if there is a piece on this tile to attack
                     chosen=self.brd.tiles[i][j].getPiece()
-                    attack=self.calSuccess(key,key.getRank(),self.prediction[chosen]) # calculates the possibility of winning the fight
+                    attack=self.calcAttack(key,key.getRank(),self.prediction[chosen]) # calculates the possibility of winning the fight
                 payOff=move + attack
                 valueOfMove[(i,j)]=[payOff]  #stores the payoff at the current destination
                 attack=0
