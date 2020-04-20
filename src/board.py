@@ -240,11 +240,10 @@ class Board:
         dw = (pieceRow + 1, pieceCol)     #down
         dr = (pieceRow + 1, pieceCol + 1) #downright
         if piece.toString() == "Landmine" or piece.toString() == "Flag":
-            action = None    #landmine and flag cannot be move
+            return None    #landmine and flag cannot be move
         #if no move
         if og == (row, col):
-            action = "no move"
-            return action
+            return "no move"
         #if engineer on railway
         if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
             railwayGraph = {}   #will contain adjacent nodes of the pos ({0 : [1, 10], ...})
@@ -284,7 +283,7 @@ class Board:
                         index = index + 1
             #search path to dest using DFS
             #DFS algorithm referenced from https://www.koderdojo.com/blog/depth-first-search-in-python-recursive-and-non-recursive-programming
-            def DFS(graph, start, dest):
+            def DFS_checkAvailableMovement(graph, start, dest):
                 stack = [start]
                 path = []
                 while stack:
@@ -305,7 +304,7 @@ class Board:
                 return path
             start = railwayList.index((pieceRow, pieceCol)) #get the corresponding vertices
             dest = railwayList.index((row, col))    #get the corresponding vertices
-            path = DFS(railwayGraph, start, dest)
+            path = DFS_checkAvailableMovement(railwayGraph, start, dest)
             if dest in path:
                 if not self.tiles[row][col].getPiece():
                     action = "move"
@@ -590,7 +589,7 @@ class Board:
         return winner,loser
 
     #called whenever an action is executed
-    def takeAction(self, piece, action, dest):
+    def takeAction(self, piece, action, dest, prediction = True):
         winner = None
         loser = None
         i = dest[0]
@@ -603,7 +602,8 @@ class Board:
                 self.tiles[i][j].setPiece(winner)
             else:
                 self.tiles[i][j].setPiece(piece)
-            self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
+            if prediction:
+                self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
             self.currentPiece = None
             self.pieceRow = None
             self.pieceCol = None
