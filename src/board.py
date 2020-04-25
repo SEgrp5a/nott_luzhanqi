@@ -450,7 +450,7 @@ class Board:
                         else:
                             if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
                                 #whenever the player's turn is over.. then the AI will make move
-                                pygame.time.wait(500)
+                                #pygame.time.wait(500)
                                 start,dest = self.ai.makeMove()
                                 self.aiLastMove = [start, dest]
                                 self.aiMoved = True
@@ -602,8 +602,7 @@ class Board:
                 self.tiles[i][j].setPiece(winner)
             else:
                 self.tiles[i][j].setPiece(piece)
-            if prediction:
-                self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
+            self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
             self.currentPiece = None
             self.pieceRow = None
             self.pieceCol = None

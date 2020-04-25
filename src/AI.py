@@ -32,10 +32,10 @@ class AI():
 
     def __init__(self, board):
         self.brd = board    #get Board reference
-        self.prediction = self.genPrediction()
         self.currentPiece = None
-        self.playerDeadPieces = []
         self.lostPiece = None   #record what piece is lost this round
+        self.prediction = self.getPrediction()
+        self.playerDeadPieces = []
         self.moveHeuristic = [[1,1,1,1,1],
                               [1,1,1,1,1],
                               [1,1,1,1,1],
@@ -47,9 +47,9 @@ class AI():
                               [3,1,2,1,3],
                               [3,2,1,2,3],
                               [4,5,4,5,4],
-                              [5,6,5,6,5]]
+                              [5,6,5,6,5]] #subject to change
 
-    def genPrediction(self):
+    def getPrediction(self):
         prediction = {}
         for i in range(int(self.brd.numRow/2),self.brd.numRow):
             for j in range(self.brd.numCol):
@@ -173,7 +173,7 @@ class AI():
         return moves
 
     def chooseMove(self):
-        currentState = {}  #store the payoff of each move {referenceToPiece: [orgin, [(dest, payOff, action)]]}
+        currentState = {}  #store the payoff of each move {referenceToPiece: [orgin, [(dest, payOff, action), ...]]}
         for i in range(self.brd.numRow):
             for j in range(self.brd.numCol): # check entire board for AI's piece
                 if self.brd.tiles[i][j].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() == 1: # if the piece is AI's piece
@@ -191,6 +191,8 @@ class AI():
                 if move[1] < 0:
                     continue
                 max = move[1] #payoff of move
+
+                #mock next state
                 self.brd.tiles[currentState[piece][0][0]][currentState[piece][0][1]].setPiece(None)
                 ogPiece = self.brd.tiles[move[0][0]][move[0][1]].getPiece()
                 self.brd.tiles[move[0][0]][move[0][1]].setPiece(piece)
@@ -200,28 +202,27 @@ class AI():
                     for j in range(self.brd.numCol): # check entire board for AI's piece
                         if self.brd.tiles[i][j].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() == 1: # if the piece is AI's piece
                             nextState[self.brd.tiles[i][j].getPiece()] = [(i,j),None]
-                
+
                 #calculate payoff for all possible moves
                 for temp in nextState:
                     nextState[temp][1] = self.generateMoves(temp,nextState[temp][0])
                 
                 #get best payoff for all 'attack' moves
-                min = 0 #minimum lost of enemy's move
+                min = 0 #maximum lost by enemy's move
                 attackCounter = 0
                 for temp in nextState:
                     for temp2 in nextState[temp][1]:
-                        #only calculate min for 'attack' move
-                        if min < temp2[1] and temp2[2] == 'attack':
-                            attackCounter = attackCounter + 1
+                        if min > temp2[1] and temp2[2] == 'attack': #only calculate min for 'attack' move
                             min = temp2[1]
+                            attackCounter = attackCounter + 1
                 
-                if attackCounter == 0: #if pieces cannot be attacked next round
-                    min = 10
+                if attackCounter == 0: #if piece cannot be attacked next round
+                    min = 10 #subject to change
 
                 if bestMove[0] < max + min:
                     bestMove = (max + min, piece, currentState[piece][0], move[0], move[2])
                 
-                #return to original state
+                #revert to original state
                 self.brd.tiles[currentState[piece][0][0]][currentState[piece][0][1]].setPiece(piece)
                 self.brd.tiles[move[0][0]][move[0][1]].setPiece(ogPiece)
 
@@ -236,7 +237,8 @@ class AI():
                        ["Brigadier","Colonel","Captain","Major","Brigadier"]]
         for i in range(int(self.brd.numRow/2)):
             for j in range(self.brd.numCol):
-                self.brd.tiles[i][j].setPiece(self.brd.spawnPiece(1, pieceLayout[i][j], self.brd.tiles[i][j].getPos()))
+                if pieceLayout[i][j]:
+                    self.brd.tiles[i][j].setPiece(self.brd.spawnPiece(1, pieceLayout[i][j], self.brd.tiles[i][j].getPos()))
 
     #take action
     def makeMove(self):
