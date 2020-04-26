@@ -149,7 +149,7 @@ class AI():
             return (0 - success) #returns the success rate as a negative value to deter the move
         
     #generate possible moves and calculate its payoff the return as a list
-    def generateMoves(self,piece,orgin):
+    def generateMoves(self,piece,orgin,min):
         moves = []
         (currentRow, currentCol) = orgin
         attackPayOff = 0 # incentive to attack
@@ -158,7 +158,7 @@ class AI():
         for i in range(self.brd.numRow):  #i ,j = destination
             for j in range(self.brd.numCol):
                 self.brd.tiles[currentRow][currentCol].setPiece(None) # to ignore counting the current place as a dead end
-                action = self.brd.checkAvailableMovement(i,j,piece,currentRow,currentCol) # checks for all available moves in the map
+                action = self.brd.checkAvailableMovement(i,j,piece,currentRow,currentCol,min) # checks for all available moves in the map
                 self.brd.tiles[currentRow][currentCol].setPiece(piece)
 
                 if action != None and action != "no move": # if the piece can move here or attack this piece
@@ -181,7 +181,8 @@ class AI():
         
         #calculate payoff for all possible moves
         for piece in currentState:
-            currentState[piece][1] = self.generateMoves(piece,currentState[piece][0])
+            self.brd.min=False
+            currentState[piece][1] = self.generateMoves(piece,currentState[piece][0],self.brd.min)
         
         #for all possibleMoves
         bestMove = (0.0,None,None,None,None) #(Payoff, referenceToPiece, orgin, dest, action)
@@ -200,10 +201,12 @@ class AI():
                     for j in range(self.brd.numCol): # check entire board for AI's piece
                         if self.brd.tiles[i][j].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() == 1: # if the piece is AI's piece
                             nextState[self.brd.tiles[i][j].getPiece()] = [(i,j),None]
+
                 
                 #calculate payoff for all possible moves
                 for temp in nextState:
-                    nextState[temp][1] = self.generateMoves(temp,nextState[temp][0])
+                    self.brd.min=True
+                    nextState[temp][1] = self.generateMoves(temp,nextState[temp][0],self.brd.min)
                 
                 #get best payoff for all 'attack' moves
                 min = 0 #minimum lost of enemy's move
@@ -214,7 +217,12 @@ class AI():
                         if min < temp2[1] and temp2[2] == 'attack':
                             attackCounter = attackCounter + 1
                             min = temp2[1]
-                
+                        # special case for if there is enemy piece in camp
+                        elif temp2[2] == None and self.brd.layout[temp2[0][0]][temp2[0][1]]=="CP": #check if it is camp
+                            if self.brd.tiles[temp2[0][0]][temp2[0][1]].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() != 1: # check for piece and its' alliance
+                                    attackCounter = attackCounter +1
+                                    min = temp2[1]
+
                 if attackCounter == 0: #if pieces cannot be attacked next round
                     min = 10
 
@@ -245,6 +253,6 @@ class AI():
         payoff, self.currentPiece, orgin, dest, action = self.chooseMove() # returns piece to move, destination of move, current location of piece
         
         self.brd.tiles[orgin[0]][orgin[1]].setPiece(None)
-        self.brd.takeAction(self.currentPiece, (self.brd.checkAvailableMovement(dest[0], dest[1], self.currentPiece, orgin[0], orgin[1])), (dest[0],dest[1]))
+        self.brd.takeAction(self.currentPiece, (self.brd.checkAvailableMovement(dest[0], dest[1], self.currentPiece, orgin[0], orgin[1],self.brd.min)), (dest[0],dest[1]))
 
         return orgin, dest

@@ -51,6 +51,7 @@ class Board:
         #AI condition
         self.aiMoved = False
         self.aiLastMove = [None, None] #[start, dest]
+        self.min = False # false if calculating max, true if calculating min
 
     def getGamePhase():
         return self.gamePhase
@@ -227,7 +228,7 @@ class Board:
         return True
 
     #check if movement is vailable
-    def checkAvailableMovement(self, row, col, piece, pieceRow, pieceCol):
+    def checkAvailableMovement(self, row, col, piece, pieceRow, pieceCol,min):
         action = None   #action is either "attack" or "move" or "no move" or None for invalid action
         #pos = (row, col)
         ul = (pieceRow - 1, pieceCol - 1) #upperleft
@@ -245,7 +246,7 @@ class Board:
         if og == (row, col):
             return "no move"
         #if engineer on railway
-        if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
+        if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer" and min == False:
             railwayGraph = {}   #will contain adjacent nodes of the pos ({0 : [1, 10], ...})
             index = 0   #label the nodes (key for railwayGraph)
             railwayList = []    #will contain all railway counting up to down, left to right ([(row, col), ...]) (railwayList[vertex] will have result for the location of railway)
@@ -408,7 +409,7 @@ class Board:
                     #play phase
                     if self.gamePhase == 2:
                         if self.currentPiece:
-                            if self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol):
+                            if self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol,self.min):
                                 outlineColor_tile = self.green
                             else:
                                 outlineColor_tile = self.red
@@ -448,7 +449,7 @@ class Board:
                                 self.pieceCol = j
                                 self.tiles[i][j].setPiece(None)
                         else:
-                            if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
+                            if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol,self.min), (i,j)):
                                 #whenever the player's turn is over.. then the AI will make move
                                 pygame.time.wait(500)
                                 start,dest = self.ai.makeMove()
