@@ -18,6 +18,7 @@ class Button():
         self.buttonDown = False
         self.buttonPrevDown = False
         self.hovering = False
+        self.frameCounter = 0
         #piece is an object of Piece or it's subclasses
         self.piece = None
         #flag is the properties of the tile
@@ -41,16 +42,21 @@ class Button():
             exited = True
             
         #if event is happening on a button
+        leftMouse = pygame.mouse.get_pressed()[0]
         if self.isOver(event.pos):
             events.append('hover')
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.type != pygame.MOUSEWHEEL and leftMouse:
                 self.buttonDown = True
                 self.buttonPrevDown = True
                 events.append('down')
-            if event.type == pygame.MOUSEBUTTONUP:
+            if event.type == pygame.MOUSEBUTTONUP and event.type != pygame.MOUSEWHEEL:
                 self.buttonDown = False
                 if self.buttonPrevDown:
                     events.append('click')
+                    self.frameCounter = self.frameCounter + 1
+                    if self.frameCounter == 4:
+                        self.frameCounter = 0
+                        self.buttonPrevDown = False
 
         if exited:
             events.append('exit')
