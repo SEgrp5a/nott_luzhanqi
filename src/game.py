@@ -9,6 +9,11 @@ yellow = (255,255,0)
 black = (0,0,0)
 white = (255,255,255)
 
+menu_music = '.\\bin\\GOT.mp3'
+In_game_music = '.\\bin\\war.mp3'
+rule_music ='.\\bin\\Halo.mp3'
+pausing_music = '.\\bin\\GOT.mp3'
+
 click = False
 
 FPS = 30
@@ -22,15 +27,15 @@ FPSCLOCK = pygame.time.Clock()
 GAMEDISPLAY = pygame.display.set_mode((displayWidth, displayHeight))
 pygame.display.set_caption("Lu Zhan QI")
 
+def play(music):
+    pygame.mixer.music.load(music)
+    pygame.mixer.music.play(-1)
+
+def stop_music():
+    pygame.mixer.music.stop()
+
 def update(event):
     board.handleEvent(event)
-
-def button_text (x, y, textColor,text,fontsize):
-    startTextObj = pygame.font.Font(".\\bin\\Becker.ttf", fontsize)
-    startTextSurfaceObj = startTextObj.render(text, True, textColor)
-    startTextRectObj = startTextSurfaceObj.get_rect()
-    startTextRectObj.center = (x, y)
-    GAMEDISPLAY.blit(startTextSurfaceObj, startTextRectObj)
 
 def write_text(x,y,text,textcolor,fontsize):
     titleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", fontsize)
@@ -47,22 +52,13 @@ def writeRules():
     rulesImage = pygame.transform.scale(rulesImage,(displayWidth,displayHeight))
     GAMEDISPLAY.blit(rulesImage,(0,0))
 
-    titleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", 40)
-    titleTextSurfaceObj = titleTextObj.render("RULES:", True, black)
-    titleTextRectObj = titleTextSurfaceObj.get_rect()
-    titleTextRectObj.center = (displayWidth/2, y/2)
-    GAMEDISPLAY.blit(titleTextSurfaceObj, titleTextRectObj)
-
-    ruleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", 20)
+    write_text(displayWidth/2,y/2,"RULES:",black,40)
 
     file = open(".\\bin\\rules.csv", "r")
 
     for line in file:
 
-        ruleTextSurfaceObj = ruleTextObj.render(line.rstrip(), True, black)
-        ruleTextRectObj = ruleTextSurfaceObj.get_rect()
-        ruleTextRectObj.center = (displayWidth/2, y)
-        GAMEDISPLAY.blit(ruleTextSurfaceObj, ruleTextRectObj)
+        write_text(displayWidth/2, y,line.rstrip(),black,20)
 
         y += 25
 
@@ -73,19 +69,14 @@ def loadTitleScreen ():
     titleImage = pygame.transform.scale(titleImage,(displayWidth,displayHeight))
     GAMEDISPLAY.blit(titleImage,(0,0))
 
-    titleTextObj = pygame.font.Font("bin\Becker.ttf", 100)
-    titleTextSurfaceObj = titleTextObj.render("Lu Zhan Qi", True, red)
-    titleTextRectObj = titleTextSurfaceObj.get_rect()
-    titleTextRectObj.center = (300, 50)
-    GAMEDISPLAY.blit(titleTextSurfaceObj, titleTextRectObj)
+    write_text(300, 50,"Lu Zhan Qi",red,100)
 
 def draw(board):
         GAMEDISPLAY.fill(white)
         board.draw(GAMEDISPLAY)
 
 def main_menu ():
-    pygame.mixer.music.load('.\\bin\\GOT.mp3')
-    pygame.mixer.music.play(-1)
+    play(menu_music)
     while True:
         loadTitleScreen()
 
@@ -93,21 +84,23 @@ def main_menu ():
 
         rule_button = pygame.Rect(displayWidth/2 - 100, displayHeight/2 + 110, 200, 80) 
         pygame.draw.rect(GAMEDISPLAY,red,rule_button)
-        button_text(displayWidth/2,displayHeight/2 + 150,black,'RULES',34)
+        write_text(displayWidth/2,displayHeight/2 + 150,'RULES',black,34)
 
         start_button = pygame.Rect(displayWidth/2 - 100, displayHeight/2 + 10, 200, 80)
         pygame.draw.rect(GAMEDISPLAY,red,start_button)
-        button_text(displayWidth/2,displayHeight/2 + 50,black,'START',34)
+        write_text(displayWidth/2,displayHeight/2 + 50,'START',black,34)
 
         if rule_button.collidepoint((mx, my)):
             if click:
-                pygame.mixer.music.stop()
+                stop_music()
                 rule_menu()
+                play(menu_music)
         
         if start_button.collidepoint((mx, my)):
             if click:
-                pygame.mixer.music.stop()
+                stop_music()
                 start_page()
+                play(menu_music)
 
         click = False
         for event in pygame.event.get():
@@ -126,8 +119,7 @@ def main_menu ():
         FPSCLOCK.tick(FPS)
 
 def rule_menu():
-    pygame.mixer.music.load('.\\bin\\Halo.mp3')
-    pygame.mixer.music.play(-1)
+    play(rule_music)
     running = True
     while running:
         writeRules()
@@ -137,17 +129,14 @@ def rule_menu():
                 sys.exit()
             if event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load('.\\bin\\GOT.mp3')
-                    pygame.mixer.music.play(-1)
+                    stop_music()
                     running = False
     
         pygame.display.update()
         FPSCLOCK.tick(FPS)      
 
 def start_page():
-    pygame.mixer.music.load('.\\bin\\war.mp3')
-    pygame.mixer.music.play(-1)
+    play(In_game_music)
     running = True
     while running:
         for event in pygame.event.get():
@@ -156,12 +145,11 @@ def start_page():
                 sys.exit()
             if event.type == KEYDOWN:
                 if event.key == K_SPACE: #Pause
-                    pygame.mixer.music.stop()
+                    stop_music()
                     pause_page()
+                    play(In_game_music)
                 if event.key == K_ESCAPE: #Exit Game
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load('.\\bin\\GOT.mp3')
-                    pygame.mixer.music.play(-1)
+                    stop_music()
                     #del board 
                     running = False
 
@@ -172,9 +160,7 @@ def start_page():
         FPSCLOCK.tick(FPS) 
 
 def pause_page():
-    pygame.mixer.music.load('.\\bin\\GOT.mp3')
-    pygame.mixer.music.play(-1)
-
+    play(pausing_music)
     running = True
     while running:
         titleImage = pygame.image.load(".\\bin\\war screen.png")
@@ -189,9 +175,7 @@ def pause_page():
                 sys.exit()
             if event.type == KEYDOWN: 
                 if event.key == K_SPACE: #return to game
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load('.\\bin\\war.mp3')
-                    pygame.mixer.music.play(-1)
+                    stop_music()
                     running = False 
         pygame.display.update()
         FPSCLOCK.tick(FPS) 
