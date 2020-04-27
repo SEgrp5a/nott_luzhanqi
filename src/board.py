@@ -1,7 +1,7 @@
 import pygame
 import operator
 import random
-from button import *
+from tile import *
 from pieces import *
 from AI import AI
 
@@ -43,7 +43,7 @@ class Board:
         #moving piece
         self.movingPiece = False
         #done button
-        self.doneButton = Button(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
+        self.doneButton = Tile(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
         #record game phase
         self.gamePhase = 1
         #create AI
@@ -96,9 +96,9 @@ class Board:
             x = []
             for i in range(self.numCol):
                 if j >= 6:
-                    x.append(Button(i * self.width, (j + 1) * self.height, self.width, self.height, transparent = True))
+                    x.append(Tile(i * self.width, (j + 1) * self.height, self.width, self.height, transparent = True))
                 else:
-                     x.append(Button(i * self.width, j * self.height, self.width, self.height, transparent = True))
+                     x.append(Tile(i * self.width, j * self.height, self.width, self.height, transparent = True))
             tiles.append(x)
         return tiles
 
@@ -109,7 +109,7 @@ class Board:
         y = 200
         i = 0
         for item in self.pieceData:
-            selectionPaneTiles[i] = SelectionPaneButton(x, y, 50, 50, color = (255,255,0), nPieces = self.pieceData[item][0])
+            selectionPaneTiles[i] = SelectionPaneTile(x, y, 50, 50, color = (255,255,0), nPieces = self.pieceData[item][0])
             for _ in range(self.pieceData[item][0]):
                 selectionPaneTiles[i].addPiece(self.spawnPiece(0, item, selectionPaneTiles[i].getPos()))
             selectionPaneTiles[i].setFlag(item)
@@ -394,7 +394,7 @@ class Board:
             for i in range(self.numRow):
                 outline_tile = False
                 outlineColor_tile = None
-                #if is hovering on button
+                #if is hovering on tile
                 if 'hover' in self.tiles[i][j].handleEvent(event):
                     outline_tile = True
                     #setup phase
@@ -415,11 +415,11 @@ class Board:
                                 outlineColor_tile = self.red
                         else:
                             outlineColor_tile = self.black
-                #if button is clicked
+                #if tile is clicked
                 if 'down' in self.tiles[i][j].handleEvent(event):
                     outline_tile = True
                     outlineColor_tile = self.blue
-                #if button is clicked & released
+                #if tile is clicked & released
                 if 'click' in self.tiles[i][j].handleEvent(event):
                     self.aiMoved = False
                     #setup phase
@@ -455,7 +455,7 @@ class Board:
                                 start,dest = self.ai.makeMove()
                                 self.aiLastMove = [start, dest]
                                 self.aiMoved = True
-                #if mouse exited a button
+                #if mouse exited a tile
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
                 self.tiles[i][j].update(self.tiles[i][j].getColor(), outline_tile, outlineColor_tile)
@@ -473,7 +473,7 @@ class Board:
             for k in range(len(self.selectionPaneTiles)):
                 outline_select = False
                 outlineColor_select = None
-                #if is hovering on button
+                #if is hovering on tile
                 if 'hover' in self.selectionPaneTiles[k].handleEvent(event):
                     outline_select = True
                     if self.currentPiece:
@@ -483,11 +483,11 @@ class Board:
                             outlineColor_select = self.red
                     else:
                         outlineColor_select = self.black
-                #if button is clicked
+                #if tile is clicked
                 if 'down' in self.selectionPaneTiles[k].handleEvent(event):
                     outline_select = True
                     outlineColor_select = self.blue
-                #if button is clicked & released
+                #if tile is clicked & released
                 if 'click' in self.selectionPaneTiles[k].handleEvent(event):
                     if not self.currentPiece:
                         self.currentPiece = self.selectionPaneTiles[k].getPiece()
@@ -499,7 +499,7 @@ class Board:
                                 self.pieceData[self.currentPiece.toString()][0] = self.pieceData[self.currentPiece.toString()][0] + 1
                             self.currentPiece = None
                             self.movingPiece = False
-                #if mouse exited a button
+                #if mouse exited a tile
                 if 'exit' in self.selectionPaneTiles[k].handleEvent(event):
                     outline_select = False
                 self.selectionPaneTiles[k].update(self.selectionPaneTiles[k].getColor(), outline_select, outlineColor_select)
