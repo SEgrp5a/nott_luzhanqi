@@ -43,11 +43,11 @@ class Board:
         #moving piece
         self.movingPiece = False
         #done button
-        self.doneButton = Button(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
+        self.doneButton = Tile(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
         #Auto player piece setup
-        self.plySetup1 = Button(1200-575,716-55,170,45,self.green,text="Pre-setup 1")
-        self.plySetup2 = Button(1200-345,716-55,170,45,self.green,text="Pre-setup 2")
-        self.clear = Button(1200-460,716-110,170,45,self.green,text="Undo Setup")
+        self.plySetup1 = Tile(1200-575,716-55,170,45,self.green,text="Pre-setup 1")
+        self.plySetup2 = Tile(1200-345,716-55,170,45,self.green,text="Pre-setup 2")
+        self.clear = Tile(1200-460,716-110,170,45,self.green,text="Undo Setup")
         #record game phase
         self.gamePhase = 1
         #create AI
@@ -161,15 +161,14 @@ class Board:
         if self.currentPiece == None:
             for k in self.pieceData:
                 if self.pieceData[k][0] == 0:
-                    complete=True;
+                    complete = True
                 #else:
                 #    # can do a pop-up to let user know not all pieces are set
                 #    break
-            if complete==True:
+            if complete == True:
                 self.ai = AI(self)  #initialize AI
                 self.ai.placePieces()
                 self.gamePhase = 2
-                self.genAiPieces()
 
     def autoSetup1(self):
         peicePosition = ["Commander","Commander","Landmine","Flag","Landmine",
@@ -236,7 +235,6 @@ class Board:
                           "Commander": [3],
                           "Engineer": [3]}
         self.selectionPaneTiles = self.generateSelectionPane()
-
 
     #Draw the entire interface
     def draw(self,surface):

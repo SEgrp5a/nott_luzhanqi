@@ -153,6 +153,9 @@ class SelectionPaneTile(Tile):
         if len(self.pieces) > 0:
             self.pieces.pop(0)
 
+    def removeAll(self):
+        self.pieces = []
+
     def draw(self, surface):
         super().draw(surface)
 
