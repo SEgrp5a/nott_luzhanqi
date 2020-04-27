@@ -1,0 +1,19 @@
+The objective of the game is to capture your opponent's flag.
+
+"You get an army of 19 standard pieces, soldier  pieces each ranked 1 - 9 in power."
+"Additionally, you also get 2 Grenades, 3 landmines,  and a Flag piece."
+"You should place all pieces on the board before starting the game,  leaving all camp sites empty."
+
+"Pieces can be moved one square in any direction, with the exception of the Engineer."
+The Engineer piece can move an unlimited number of squares in any direction only on railways.
+The Landmine and Flag pieces cannot move.
+Two mountains in the middle of the board serves as obstacles from movement.
+
+When one piece attacks another: (Compare)
+Example: Marshal (rank 1) vs. Brigadier (rank 4) [BRIGADIER IS CAPTURED].
+"If the two pieces are equally ranked, both are captured."
+The Landmine pieces defeat all pieces except for the Engineers (rank 9) who can defuse them.
+"The Grenade defeats all pieces, however both pieces are gone."
+Any moveable piece can capture the flag.
+
+PRESS ESCAPE ON KEYBOARD TO MAIN MENU
