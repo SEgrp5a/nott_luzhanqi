@@ -48,6 +48,9 @@ class Board:
         self.gamePhase = 1
         #create AI
         self.ai = None
+        #AI condition
+        self.aiMoved = False
+        self.aiLastMove = [None, None] #[start, dest]
 
     def getGamePhase():
         return self.gamePhase
@@ -237,11 +240,10 @@ class Board:
         dw = (pieceRow + 1, pieceCol)     #down
         dr = (pieceRow + 1, pieceCol + 1) #downright
         if piece.toString() == "Landmine" or piece.toString() == "Flag":
-            action = None    #landmine and flag cannot be move
+            return None    #landmine and flag cannot be move
         #if no move
         if og == (row, col):
-            action = "no move"
-            return action
+            return "no move"
         #if engineer on railway
         if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
             railwayGraph = {}   #will contain adjacent nodes of the pos ({0 : [1, 10], ...})
@@ -281,7 +283,7 @@ class Board:
                         index = index + 1
             #search path to dest using DFS
             #DFS algorithm referenced from https://www.koderdojo.com/blog/depth-first-search-in-python-recursive-and-non-recursive-programming
-            def DFS(graph, start, dest):
+            def DFS_checkAvailableMovement(graph, start, dest):
                 stack = [start]
                 path = []
                 while stack:
@@ -302,7 +304,7 @@ class Board:
                 return path
             start = railwayList.index((pieceRow, pieceCol)) #get the corresponding vertices
             dest = railwayList.index((row, col))    #get the corresponding vertices
-            path = DFS(railwayGraph, start, dest)
+            path = DFS_checkAvailableMovement(railwayGraph, start, dest)
             if dest in path:
                 if not self.tiles[row][col].getPiece():
                     action = "move"
@@ -415,9 +417,10 @@ class Board:
                 #if button is clicked
                 if 'down' in self.tiles[i][j].handleEvent(event):
                     outline_tile = True
-                    outlineColor_tile = self.blue           
+                    outlineColor_tile = self.blue
                 #if button is clicked & released
                 if 'click' in self.tiles[i][j].handleEvent(event):
+                    self.aiMoved = False
                     #setup phase
                     if self.gamePhase == 1:
                         #take the piece if the tile already contain a piece
@@ -446,19 +449,23 @@ class Board:
                                 self.tiles[i][j].setPiece(None)
                         else:
                             if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
-                                self.currentPiece = None
-                                self.pieceRow = None
-                                self.pieceCol = None
                                 #whenever the player's turn is over.. then the AI will make move
-                                pygame.time.wait(500)
-                                self.ai.makeMove()
+                                #pygame.time.wait(500)
+                                start,dest = self.ai.makeMove()
+                                self.aiLastMove = [start, dest]
+                                self.aiMoved = True
                 #if mouse exited a button
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
                 self.tiles[i][j].update(self.tiles[i][j].getColor(), outline_tile, outlineColor_tile)
         
-        if self.gamePhase == 2 and self.currentPiece:
-            self.tiles[self.pieceRow][self.pieceCol].setOutline(True, self.blue)
+            #Highlight orgin position
+            if self.gamePhase == 2 and self.currentPiece:
+                self.tiles[self.pieceRow][self.pieceCol].setOutline(True, self.blue)   
+            #Highlight AI's last move
+            if self.aiMoved:
+                self.tiles[self.aiLastMove[0][0]][self.aiLastMove[0][1]].setOutline(True, self.blue)
+                self.tiles[self.aiLastMove[1][0]][self.aiLastMove[1][1]].setOutline(True, self.blue)
 
         #handle event on selection pane
         if self.gamePhase == 1:
@@ -582,7 +589,7 @@ class Board:
         return winner,loser
 
     #called whenever an action is executed
-    def takeAction(self, piece, action, dest):
+    def takeAction(self, piece, action, dest, prediction = True):
         winner = None
         loser = None
         i = dest[0]
@@ -595,10 +602,13 @@ class Board:
                 self.tiles[i][j].setPiece(winner)
             else:
                 self.tiles[i][j].setPiece(piece)
+            self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
+            self.currentPiece = None
+            self.pieceRow = None
+            self.pieceCol = None
             if action == "no move":
                 return False
             else:
-                self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
                 return True
         else:
             return False

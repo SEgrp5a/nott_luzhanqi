@@ -32,14 +32,25 @@ class AI():
 
     def __init__(self, board):
         self.brd = board    #get Board reference
-        self.prediction = self.genPrediction()
         self.currentPiece = None
-        self.playerDeadPieces = []
         self.lostPiece = None   #record what piece is lost this round
+        self.prediction = self.getPrediction()
+        self.playerDeadPieces = []
+        self.moveHeuristic = [[1,1,1,1,1],
+                              [1,1,1,1,1],
+                              [1,1,1,1,1],
+                              [1,1,1,1,1],
+                              [1,1,1,1,1],
+                              [1,1,1,1,1],
+                              [3,3,3,3,3],
+                              [3,2,1,2,3],
+                              [3,1,2,1,3],
+                              [3,2,1,2,3],
+                              [4,5,4,5,4],
+                              [5,6,5,6,5]] #subject to change
 
-    def genPrediction(self):
+    def getPrediction(self):
         prediction = {}
-        
         for i in range(int(self.brd.numRow/2),self.brd.numRow):
             for j in range(self.brd.numCol):
                 default = ["Marshal", "General", "Lieutenant",
@@ -94,12 +105,14 @@ class AI():
                             self.prediction[loser].remove(item)
         #if player piece moved
         if ori != dest and playerPiece:
-            #piece won't be flag or landmine if it is moved
+            #playerPiece won't be flag or landmine if it is moved
             if 'Landmine' in self.prediction[playerPiece]:
                 self.prediction[playerPiece].remove('Landmine')
             if 'Flag' in self.prediction[playerPiece]:
                 self.prediction[playerPiece].remove('Flag')
-
+            #playerPiece is engineer if can move along corner of RW
+            if ori[0] != dest[0] and ori[1] != dest[1]:
+                self.prediction[playerPiece] = ['Engineer']
 
         self.lostPiece = None
         self.currentPiece = None
@@ -110,38 +123,130 @@ class AI():
             print(self.prediction[item])
         print(self.playerDeadPieces)
 
+    def calcAttack(self,piece,myRank,enemies): # receives current piece,current piece rank, list of pieces the opponent can be
+        willLoseTo = 0
+        worth = 0 # for if my piece is grenade
+        for enemy in enemies:
+            enemyRank = self.rankData[str(enemy)]
+            if str(enemy) == "Flag": # If the enemy piece has a chance to be a flag, attack immediately if possible
+                return 10
+            elif piece.toString() == "Grenade" and enemyRank[0] < 4: # grenade should try to fight pieces with higher power (lieutenant and above)
+                worth = worth + 1 # could be a high level piece
+            elif myRank > enemyRank[0]:  # rank higher = power lower
+                willLoseTo = willLoseTo + 1 # records the pieces it will lose to
+
+        if piece.toString() == "Grenade":
+            if (len(enemies) - worth) == 0: # unless I know it is a lieutenant or higher power, i will not attack
+                return 1
+            else:
+                return 0
+        else:
+            success = 1 - (willLoseTo/len(enemies)) # returns the probability of winning the battle
+
+        if success > 0.74: # if it has a 75% chance of winning
+            return success
+        else:
+            return (0 - success) #returns the success rate as a negative value to deter the move
+        
+    #generate possible moves and calculate its payoff the return as a list
+    def generateMoves(self,piece,orgin):
+        moves = []
+        (currentRow, currentCol) = orgin
+        attackPayOff = 0 # incentive to attack
+        movePayOff = 0 # incentive to move
+
+        for i in range(self.brd.numRow):  #i ,j = destination
+            for j in range(self.brd.numCol):
+                self.brd.tiles[currentRow][currentCol].setPiece(None) # to ignore counting the current place as a dead end
+                action = self.brd.checkAvailableMovement(i,j,piece,currentRow,currentCol) # checks for all available moves in the map
+                self.brd.tiles[currentRow][currentCol].setPiece(piece)
+
+                if action != None and action != "no move": # if the piece can move here or attack this piece
+                    movePayOff = self.moveHeuristic[i][j]
+                    if action == "attack": #if there is a piece on this tile to attack
+                        attackPayOff = self.calcAttack(piece, piece.getRank(), self.prediction[self.brd.tiles[i][j].getPiece()]) # calculates the possibility of winning the fight
+                
+                    #calculate payoff
+                    payOff = movePayOff + attackPayOff
+                    moves.append(((i,j),payOff,action)) #stores the dest, payoff & action of a movable piece
+
+        return moves
+
+    def chooseMove(self):
+        currentState = {}  #store the payoff of each move {referenceToPiece: [orgin, [(dest, payOff, action), ...]]}
+        for i in range(self.brd.numRow):
+            for j in range(self.brd.numCol): # check entire board for AI's piece
+                if self.brd.tiles[i][j].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() == 1: # if the piece is AI's piece
+                    currentState[self.brd.tiles[i][j].getPiece()] = [(i,j),None]
+        
+        #calculate payoff for all possible moves
+        for piece in currentState:
+            currentState[piece][1] = self.generateMoves(piece,currentState[piece][0])
+        
+        #for all possibleMoves
+        bestMove = (0.0,None,None,None,None) #(Payoff, referenceToPiece, orgin, dest, action)
+        for piece in currentState:
+            for move in currentState[piece][1]:
+                #if move is bad
+                if move[1] < 0:
+                    continue
+                max = move[1] #payoff of move
+
+                #mock next state
+                self.brd.tiles[currentState[piece][0][0]][currentState[piece][0][1]].setPiece(None)
+                ogPiece = self.brd.tiles[move[0][0]][move[0][1]].getPiece()
+                self.brd.tiles[move[0][0]][move[0][1]].setPiece(piece)
+
+                nextState = {}
+                for i in range(self.brd.numRow):
+                    for j in range(self.brd.numCol): # check entire board for AI's piece
+                        if self.brd.tiles[i][j].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() == 1: # if the piece is AI's piece
+                            nextState[self.brd.tiles[i][j].getPiece()] = [(i,j),None]
+
+                #calculate payoff for all possible moves
+                for temp in nextState:
+                    nextState[temp][1] = self.generateMoves(temp,nextState[temp][0])
+                
+                #get best payoff for all 'attack' moves
+                min = 0 #maximum lost by enemy's move
+                attackCounter = 0
+                for temp in nextState:
+                    for temp2 in nextState[temp][1]:
+                        if min > temp2[1] and temp2[2] == 'attack': #only calculate min for 'attack' move
+                            min = temp2[1]
+                            attackCounter = attackCounter + 1
+                
+                if attackCounter == 0: #if piece cannot be attacked next round
+                    min = 10 #subject to change
+
+                if bestMove[0] < max + min:
+                    bestMove = (max + min, piece, currentState[piece][0], move[0], move[2])
+                
+                #revert to original state
+                self.brd.tiles[currentState[piece][0][0]][currentState[piece][0][1]].setPiece(piece)
+                self.brd.tiles[move[0][0]][move[0][1]].setPiece(ogPiece)
+
+        return bestMove
+
     def placePieces(self):
-        for j in range(self.brd.numCol):
-            tempY = 11 # -1 for each iteration to simulate mirroring
-            for i in range(int(self.brd.numRow/2)):
-                if self.brd.tiles[tempY][j].getPiece():
-                    self.brd.tiles[i][j].setPiece(self.brd.spawnPiece(1, self.brd.tiles[tempY][j].getPiece().toString(), self.brd.tiles[i][j].getPos()))
-                tempY = tempY - 1
+        pieceLayout = [["Commander","Landmine","Major","Flag","Captain"],
+                       ["Landmine","Landmine","Engineer","Marshal","Engineer"],
+                       ["Grenade",None,"Captain",None,"Colonel"],
+                       ["Engineer","Lieutenant",None,"Commander","Lieutenant"],
+                       ["Grenade",None,"General",None,"Commander"],
+                       ["Brigadier","Colonel","Captain","Major","Brigadier"]]
+        for i in range(int(self.brd.numRow/2)):
+            for j in range(self.brd.numCol):
+                if pieceLayout[i][j]:
+                    self.brd.tiles[i][j].setPiece(self.brd.spawnPiece(1, pieceLayout[i][j], self.brd.tiles[i][j].getPos()))
 
     #take action
     def makeMove(self):
         print('it is now AI turn')
-        ai_turn = True
-        while ai_turn == True:
-            rand_row = random.randint(0,11)
-            rand_col = random.randint(0,4)
+        # deciding which piece to move and to where
+        payoff, self.currentPiece, orgin, dest, action = self.chooseMove() # returns piece to move, destination of move, current location of piece
+        
+        self.brd.tiles[orgin[0]][orgin[1]].setPiece(None)
+        self.brd.takeAction(self.currentPiece, (self.brd.checkAvailableMovement(dest[0], dest[1], self.currentPiece, orgin[0], orgin[1])), (dest[0],dest[1]))
 
-            moves_row = []
-            moves_col = []
-            self.currentPiece = self.brd.tiles[rand_row][rand_col].getPiece()
-
-            if self.currentPiece != None and self.currentPiece.getAlliance() == 1 and self.currentPiece.toString() != 'Flag' and self.currentPiece.toString() != 'Landmine':
-                self.brd.tiles[rand_row][rand_col].setPiece(None)
-                #check all possible moves of the random piece by scanning the whole board
-                for i in range(self.brd.numRow):
-                    for j in range(self.brd.numCol):
-                        action = self.brd.checkAvailableMovement(i,j,self.currentPiece,rand_row,rand_col)
-                        if action != None and action != "no move":
-                            moves_row.append(i)
-                            moves_col.append(j)
-                #Now pick a random move from the array moves
-                if len(moves_col):
-                    rand_index = random.randint(0,(len(moves_col)-1))
-                    if self.brd.takeAction(self.currentPiece, (self.brd.checkAvailableMovement(moves_row[rand_index],moves_col[rand_index],self.currentPiece,rand_row,rand_col)), (moves_row[rand_index],moves_col[rand_index])):
-                        ai_turn = False
-        self.brd.tiles[rand_row][rand_col].setOutline(True, self.brd.blue)
+        return orgin, dest

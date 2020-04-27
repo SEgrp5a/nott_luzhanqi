@@ -125,7 +125,8 @@ class Button():
             if self.piece.getAlliance() == 0:   #if is player piece
                 image = pygame.image.load(self.piece.getPath())
             elif self.piece.getAlliance() == 1: #if is AI piece
-                image = pygame.image.load("bin\\Piece Shadow.png")
+                #image = pygame.image.load("bin\\Piece Shadow.png")
+                image = pygame.image.load(self.piece.getPath()) #debug
             surface.blit(image, (self.x + (self.width / 2 - image.get_width() / 2), self.y + (self.height / 2 - image.get_height() / 2)))
 
         #draw outline
@@ -139,6 +140,8 @@ class SelectionPaneButton(Button):
         return super().__init__(x, y, width, height, color=color, transparent=transparent, outline=outline, outlineColor=outlineColor, text=text, textColor=textColor)
 
     def getPiece(self):
+        if self.pieces == []:
+            return None
         return self.pieces[0]
 
     def addPiece(self, piece):
