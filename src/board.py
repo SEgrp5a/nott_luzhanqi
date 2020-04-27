@@ -43,7 +43,11 @@ class Board:
         #moving piece
         self.movingPiece = False
         #done button
-        self.doneButton = Tile(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
+        self.doneButton = Button(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
+        #Auto player piece setup
+        self.plySetup1 = Button(1200-575,716-55,170,45,self.green,text="Pre-setup 1")
+        self.plySetup2 = Button(1200-345,716-55,170,45,self.green,text="Pre-setup 2")
+        self.clear = Button(1200-460,716-110,170,45,self.green,text="Undo Setup")
         #record game phase
         self.gamePhase = 1
         #create AI
@@ -165,6 +169,74 @@ class Board:
                 self.ai = AI(self)  #initialize AI
                 self.ai.placePieces()
                 self.gamePhase = 2
+                self.genAiPieces()
+
+    def autoSetup1(self):
+        peicePosition = ["Commander","Commander","Landmine","Flag","Landmine",
+                        "Commander","Engineer","Captain","Landmine","Captain",
+                        "Major",None,"Major",None,"Captain",
+                        "Brigadier","Colonel",None,"Brigadier","Marshal",
+                        "Lieutenant",None,"Grenade",None,"Grenade",
+                        "General","Engineer","Colonel","Engineer","Lieutenant"]
+        y = 11
+        x = 0
+        for piece in peicePosition:
+            if x < self.numCol:
+                self.tiles[y][x].setPiece(self.spawnPiece(0,piece,self.tiles[y][x].getPos))
+                x = x + 1
+            if x == self.numCol:
+                x = 0
+                y = y - 1
+        for k in range(len(self.selectionPaneTiles)):
+            self.selectionPaneTiles[k].removeAll()
+        for item in self.pieceData:
+            self.pieceData[item] = [0]
+
+    def autoSetup2(self):
+        peicePosition = ["Captain","Flag","Colonel","Commander","Captain",
+                        "Landmine","Landmine","Landmine","Major","Commander",
+                        "Captain",None,"Commander",None,"Colonel",
+                        "Engineer","Brigadier",None,"Brigadier","Engineer",
+                        "Grenade",None,"Grenade",None,"Major",
+                        "Lieutenant","Marshal","General","Engineer","Lieutenant"]
+        y = 11
+        x = 0
+        for piece in peicePosition:
+            if x < self.numCol:
+                self.tiles[y][x].setPiece(self.spawnPiece(0,piece,self.tiles[y][x].getPos))
+                x = x + 1
+            if x == self.numCol:
+                x = 0
+                y = y - 1
+        for k in range(len(self.selectionPaneTiles)):
+            self.selectionPaneTiles[k].removeAll()
+        for item in self.pieceData:
+            self.pieceData[item] = [0]
+
+    def undoSetup(self):
+        y = 11
+        x = 0
+        for i in range(30):
+            if x < self.numCol:
+                self.tiles[y][x].setPiece(None)
+                x = x + 1
+            if x == self.numCol:
+                x = 0
+                y = y - 1
+        self.pieceData = {"Flag": [1],
+                          "Grenade": [2],
+                          "Landmine": [3],
+                          "Marshal": [1],
+                          "General": [1],
+                          "Lieutenant": [2],
+                          "Brigadier": [2],
+                          "Colonel": [2],
+                          "Major": [2],
+                          "Captain": [3],
+                          "Commander": [3],
+                          "Engineer": [3]}
+        self.selectionPaneTiles = self.generateSelectionPane()
+
 
     #Draw the entire interface
     def draw(self,surface):
@@ -207,6 +279,9 @@ class Board:
 
         if self.gamePhase == 1:
             self.doneButton.draw(surface)
+            self.plySetup1.draw(surface)
+            self.plySetup2.draw(surface)
+            self.clear.draw(surface)
 
     #check if piece placement is vailble
     def checkAvailablePlacement(self, row, col, piece):
@@ -459,10 +534,10 @@ class Board:
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
                 self.tiles[i][j].update(self.tiles[i][j].getColor(), outline_tile, outlineColor_tile)
-        
+
             #Highlight orgin position
             if self.gamePhase == 2 and self.currentPiece:
-                self.tiles[self.pieceRow][self.pieceCol].setOutline(True, self.blue)   
+                self.tiles[self.pieceRow][self.pieceCol].setOutline(True, self.blue)
             #Highlight AI's last move
             if self.aiMoved:
                 self.tiles[self.aiLastMove[0][0]][self.aiLastMove[0][1]].setOutline(True, self.blue)
@@ -523,6 +598,66 @@ class Board:
             if 'exit' in self.doneButton.handleEvent(event):
                 outline_done = False
             self.doneButton.update(self.doneButton.getColor(),outline_done,outlineColor_done)
+
+        #handle event on auto piece setup1 for player
+        if self.gamePhase == 1:
+            outline_done = False
+            outlineColor_done = None
+            #if is hovering on plySetup1
+            if 'hover' in self.plySetup1.handleEvent(event):
+                outline_done = True
+                outlineColor_done = self.black
+            #if plySetup1 is clicked
+            if 'down' in self.plySetup1.handleEvent(event):
+                outline_done = True
+                outlineColor_done = self.blue
+            #if plySetup1 is clicked & released
+            if 'click' in self.plySetup1.handleEvent(event):
+                self.autoSetup1()
+            #if mouse exited a plySetup1
+            if 'exit' in self.plySetup1.handleEvent(event):
+                outline_done = False
+            self.plySetup1.update(self.plySetup1.getColor(),outline_done,outlineColor_done)
+
+        #handle event on auto piece setup2 for player
+        if self.gamePhase == 1:
+            outline_done = False
+            outlineColor_done = None
+            #if is hovering on plySetup2
+            if 'hover' in self.plySetup2.handleEvent(event):
+                outline_done = True
+                outlineColor_done = self.black
+            #if plySetup2 is clicked
+            if 'down' in self.plySetup2.handleEvent(event):
+                outline_done = True
+                outlineColor_done = self.blue
+            #if plySetup2 is clicked & released
+            if 'click' in self.plySetup2.handleEvent(event):
+                self.autoSetup2()
+            #if mouse exited a plySetup2
+            if 'exit' in self.plySetup2.handleEvent(event):
+                outline_done = False
+            self.plySetup2.update(self.plySetup2.getColor(),outline_done,outlineColor_done)
+
+        #handle event on clear button
+        if self.gamePhase == 1:
+            outline_done = False
+            outlineColor_done = None
+            #if is hovering on Clear
+            if 'hover' in self.clear.handleEvent(event):
+                outline_done = True
+                outlineColor_done = self.black
+            #if clear is clicked
+            if 'down' in self.clear.handleEvent(event):
+                outline_done = True
+                outlineColor_done = self.blue
+            #if clear is clicked & released
+            if 'click' in self.clear.handleEvent(event):
+                self.undoSetup()
+            #if mouse exited a clear
+            if 'exit' in self.clear.handleEvent(event):
+                outline_done = False
+            self.clear.update(self.clear.getColor(),outline_done,outlineColor_done)
 
     #referee will decide on the result of an attack action
     def referee(self, attackPiece, defendPiece):

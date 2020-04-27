@@ -23,7 +23,7 @@ class Tile():
         self.piece = None
         #flag is the properties of the tile
         self.flag = None
-       
+
     #Event handler
     def handleEvent(self,event):
         #if the current event is not a mouse event
@@ -40,7 +40,7 @@ class Tile():
         if self.hovering and not self.isOver(event.pos):
             self.hovering = False
             exited = True
-            
+
         #if event is happening on a button
         leftMouse = pygame.mouse.get_pressed()[0]
         if self.isOver(event.pos):
@@ -62,26 +62,26 @@ class Tile():
             events.append('exit')
 
         return events
-    
+
     #check if pos is inside button(including outline)
     def isOver(self, pos):
         if pos[0] >= self.x and pos[0] <= self.x + self.width:
             if pos[1] >= self.y and pos[1] <= self.y + self.height:
-                return True     
+                return True
         return False
-    
+
     def getPos(self):
         return (self.x,self.y)
-    
+
     def getColor(self):
         return self.color   #color is a tuple of size 3
-    
+
     def setColor(self,color):
         self.color = color  #color is a tuple of size 3
-    
+
     def setTransparency(self, transparent):
         self.transparent = transparent  #transparent is a boolean
-        
+
     #set color of outline
     def setOutline(self,outline,outlineColor = None):
         self.outline = outline
@@ -104,7 +104,7 @@ class Tile():
     def update(self,color,outline,outlineColor):
         self.setColor(color)
         self.setOutline(outline,outlineColor)
-        
+
     #Draw the button on the screen
     def draw(self,surface):
         #draw filled rect
@@ -112,7 +112,7 @@ class Tile():
             s = pygame.Surface((self.width,self.height), pygame.SRCALPHA)   # per-pixel alpha
             s.fill(self.getColor())
             surface.blit(s, (self.x, self.y))
-        
+
             #draw text
         if self.text != '':
             font = pygame.font.SysFont('comicsans', 40)
@@ -131,7 +131,7 @@ class Tile():
 
         #draw outline
         if self.outline:
-            pygame.draw.rect(surface, self.outlineColor, self.rect, 2)   
+            pygame.draw.rect(surface, self.outlineColor, self.rect, 2)
 
 class SelectionPaneTile(Tile):
     def __init__(self, x, y, width, height, color=(...), transparent=False, outline=False, outlineColor=(...), text='', textColor=(...), nPieces=0):
