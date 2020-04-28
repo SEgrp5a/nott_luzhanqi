@@ -109,11 +109,12 @@ class Tile():
     def draw(self,surface):
         #draw filled rect
         if not self.transparent:
-            s = pygame.Surface((self.width,self.height), pygame.SRCALPHA)   # per-pixel alpha
-            s.fill(self.getColor())
-            surface.blit(s, (self.x, self.y))
+            #s = pygame.Surface((self.width,self.height), pygame.SRCALPHA)   # per-pixel alpha
+            #s.fill()
+            #surface.blit(s, (self.x, self.y))
+            pygame.draw.rect(surface, self.getColor(), self.rect)
 
-            #draw text
+        #draw text
         if self.text != '':
             font = pygame.font.SysFont('comicsans', 40)
             text = font.render(self.text, 1, self.textColor)

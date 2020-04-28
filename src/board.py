@@ -11,6 +11,7 @@ class Board:
         self.green = pygame.Color(0,255,0)
         self.blue = pygame.Color(0,0,255)
         self.black = pygame.Color(0,0,0)
+        self.white = pygame.Color(255,255,255)
         self.pieceData = {"Flag": [1],
                           "Grenade": [2],
                           "Landmine": [3],
@@ -50,12 +51,11 @@ class Board:
         self.clear = Tile(1200-460,716-110,170,45,self.green,text="Undo Setup")
         #record game phase
         self.gamePhase = 1
-        #create AI
+        #AI player
         self.ai = None
         #AI condition
         self.aiMoved = False
         self.aiLastMove = [None, None] #[start, dest]
-        self.min = False # false if calculating max, true if calculating min
 
     def getGamePhase():
         return self.gamePhase
@@ -109,7 +109,7 @@ class Board:
     #draws text and pieces beside board
     def generateSelectionPane(self):
         selectionPaneTiles = [None for _ in range(12)]
-        x = 725
+        x = 660
         y = 200
         i = 0
         for item in self.pieceData:
@@ -118,8 +118,8 @@ class Board:
                 selectionPaneTiles[i].addPiece(self.spawnPiece(0, item, selectionPaneTiles[i].getPos()))
             selectionPaneTiles[i].setFlag(item)
             i = i + 1
-            if x > 1050:
-                x = 725
+            if x > 1000:
+                x = 660
                 y += 150
                 #go to new line
             else:
@@ -248,9 +248,9 @@ class Board:
         #Draw Selection Pane
         #Draw Selection Pane Title
         titleTextObj = pygame.font.Font("bin\OpenSans.ttf", 38)
-        titleTextSurfaceObj = titleTextObj.render("PIECES", True, self.black)
+        titleTextSurfaceObj = titleTextObj.render("PIECES", True, self.white)
         titleTextRectObj = titleTextSurfaceObj.get_rect()
-        titleTextRectObj.center = (925, 75)
+        titleTextRectObj.center = (860, 75)
         surface.blit(titleTextSurfaceObj, titleTextRectObj)
         #Draw Selection Pane Tiles
         k = 0
@@ -259,12 +259,12 @@ class Board:
             self.selectionPaneTiles[k].draw(surface)
             #Draw Selection Pane piece's name
             textObj = pygame.font.Font("bin\OpenSans.ttf", 18)
-            textSurfaceObj = textObj.render(item, True, self.black)
+            textSurfaceObj = textObj.render(item, True, self.white)
             textRectObj = textSurfaceObj.get_rect()
             textRectObj.center = tuple(x + y for x, y in zip(self.selectionPaneTiles[k].getPos(), (25,-25)))
             surface.blit(textSurfaceObj, textRectObj)
             #Draw number of piece remaining
-            numTextSurfaceObj = textObj.render("x " + str(self.pieceData[item][0]), True, self.black)
+            numTextSurfaceObj = textObj.render("x " + str(self.pieceData[item][0]), True, self.white)
             numTextRectObj = numTextSurfaceObj.get_rect()
             numTextRectObj.center = tuple(x + y for x, y in zip(self.selectionPaneTiles[k].getPos(), (25,75)))
             surface.blit(numTextSurfaceObj, numTextRectObj)
@@ -301,7 +301,7 @@ class Board:
         return True
 
     #check if movement is vailable
-    def checkAvailableMovement(self, row, col, piece, pieceRow, pieceCol,min):
+    def checkAvailableMovement(self, row, col, piece, pieceRow, pieceCol, checkEngineer = True):
         action = None   #action is either "attack" or "move" or "no move" or None for invalid action
         #pos = (row, col)
         ul = (pieceRow - 1, pieceCol - 1) #upperleft
@@ -319,7 +319,7 @@ class Board:
         if og == (row, col):
             return "no move"
         #if engineer on railway
-        if self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer" and min == False:
+        if checkEngineer and self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
             railwayGraph = {}   #will contain adjacent nodes of the pos ({0 : [1, 10], ...})
             index = 0   #label the nodes (key for railwayGraph)
             railwayList = []    #will contain all railway counting up to down, left to right ([(row, col), ...]) (railwayList[vertex] will have result for the location of railway)
@@ -482,7 +482,7 @@ class Board:
                     #play phase
                     if self.gamePhase == 2:
                         if self.currentPiece:
-                            if self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol,self.min):
+                            if self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol):
                                 outlineColor_tile = self.green
                             else:
                                 outlineColor_tile = self.red
@@ -522,7 +522,7 @@ class Board:
                                 self.pieceCol = j
                                 self.tiles[i][j].setPiece(None)
                         else:
-                            if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol,self.min), (i,j)):
+                            if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
                                 #whenever the player's turn is over.. then the AI will make move
                                 #pygame.time.wait(500)
                                 start,dest = self.ai.makeMove()

@@ -22,7 +22,7 @@ class Piece:
 
 class Flag(Piece):
     
-    rank=0
+    rank = 0
 
     def __init__(self,alliance,position):
         self.alliance = alliance

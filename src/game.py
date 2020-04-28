@@ -5,7 +5,7 @@ red = (255,0,0)
 green = (0,255,0)
 blue = (0,0,255)
 yellow = (255,255,0)
-black = (0,0,0)
+gray = (100,100,100)
 white = (255,255,255)
 
 FPS = 30
@@ -24,7 +24,7 @@ def update(event):
     board.handleEvent(event)
 
 def draw():
-    GAMEDISPLAY.fill(white)
+    GAMEDISPLAY.fill(gray)
     board.draw(GAMEDISPLAY)
 
 # Main game loop
@@ -36,6 +36,10 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                del board
+                board = Board(100,55,12,5)
 
         update(event)
         draw()
