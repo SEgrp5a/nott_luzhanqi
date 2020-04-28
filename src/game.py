@@ -151,10 +151,11 @@ def start_page():
                 if event.key == K_ESCAPE: #Exit Game
                     stop_music()
                     #del board 
+                    #board = Board(100,55,12,5) 
                     running = False
 
-            update(event)
-            draw(board)
+        update(event)
+        draw(board)
 
         pygame.display.update()
         FPSCLOCK.tick(FPS) 

@@ -56,6 +56,11 @@ class Board:
         self.aiMoved = False
         self.aiLastMove = [None, None] #[start, dest]
         self.min = False # false if calculating max, true if calculating min
+        #sound effects
+        self.friendFire = '.\\bin\\Friendly Fire.wav'
+        self.explosion = '.\\bin\\explosion.wav'
+        self.shot = '.\\bin\\shoot.wav'
+        self.ticking = '.\\bin\\TickingBomb.wav'
 
     def getGamePhase():
         return self.gamePhase
@@ -100,6 +105,10 @@ class Board:
         titleTextRectObj = titleTextSurfaceObj.get_rect()
         titleTextRectObj.center = (x, y)
         surface.blit(titleTextSurfaceObj, titleTextRectObj)
+
+    def play(self,sound):
+        sounds = pygame.mixer.Sound(sound)
+        pygame.mixer.Sound.play(sounds)
 
     def generateTiles(self):
         tiles = []
@@ -677,6 +686,8 @@ class Board:
             #if engineer steps on a landmine
             if attackPiece.toString() == "Landmine" and defendPiece.toString() == "Engineer" or attackPiece.toString() == "Engineer" and defendPiece.toString() == "Landmine":
                 print("Engineer has disarmed the landmine!\n")
+                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0: #only when player makes a move there will be a sound [disarming landmine]
+                    self.play(self.ticking)
                 if attackPiece.toString() == "Engineer":
                     winner = attackPiece
                     loser = defendPiece
@@ -686,26 +697,29 @@ class Board:
             #if Grenade or Landmine attacks any piece
             elif attackPiece.toString() == "Grenade" or attackPiece.toString() == "Landmine" or defendPiece.toString() == "Grenade" or defendPiece.toString() == "Landmine":
                 print("Both pieces have been taken")
+                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                    self.play(self.explosion)
                 if attackPiece.getAlliance() == 0:
                     loser = attackPiece
                     self.ai.lostPiece = defendPiece
                 else:
                     loser = defendPiece
                     self.ai.lostPiece = attackPiece
-            #if Grenade lands on Landmine
-            #elif piece1.toString() == "Landmine" and piece2.toString() == "Grenade" or piece1.toString() == "Grenade" and piece2.toString() == "Landmine":
-            #    print("Both Landmine and Grenade are GONE!\n")
-            #    loser = piece1  #redundant
-            #every other pieces of different or same rank battling
             elif attackPiece.getRank() < defendPiece.getRank():
+                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                    self.play(self.shot)
                 print(attackPiece.toString() + " has taken " + defendPiece.toString() +"!\n")
                 winner = attackPiece
                 loser = defendPiece
             elif defendPiece.getRank() < attackPiece.getRank():
+                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                    self.play(self.shot)
                 print(defendPiece.toString() + " has taken " + attackPiece.toString() + "!\n")
                 winner = defendPiece
                 loser = attackPiece
             elif defendPiece.getRank() == attackPiece.getRank():
+                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                    self.play(self.shot)
                 print(defendPiece.toString() + " and " + attackPiece.toString() + " have both been taken!\n")
                 if attackPiece.getAlliance() == 0:
                     loser = attackPiece
