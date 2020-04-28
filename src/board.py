@@ -59,7 +59,7 @@ class Board:
         #sound effects
         self.friendFire = '.\\bin\\Friendly Fire.wav'
         self.explosion = '.\\bin\\explosion.wav'
-        self.shot = '.\\bin\\shoot.wav'
+        self.shoot = '.\\bin\\fire.wav'
         self.ticking = '.\\bin\\TickingBomb.wav'
 
     def getGamePhase():
@@ -542,7 +542,6 @@ class Board:
                         else:
                             if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol,self.min), (i,j)):
                                 #whenever the player's turn is over.. then the AI will make move
-                                #pygame.time.wait(500)
                                 start,dest = self.ai.makeMove()
                                 self.aiLastMove = [start, dest]
                                 self.aiMoved = True
@@ -707,19 +706,19 @@ class Board:
                     self.ai.lostPiece = attackPiece
             elif attackPiece.getRank() < defendPiece.getRank():
                 if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
-                    self.play(self.shot)
+                    self.play(self.shoot)
                 print(attackPiece.toString() + " has taken " + defendPiece.toString() +"!\n")
                 winner = attackPiece
                 loser = defendPiece
             elif defendPiece.getRank() < attackPiece.getRank():
                 if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
-                    self.play(self.shot)
+                    self.play(self.shoot)
                 print(defendPiece.toString() + " has taken " + attackPiece.toString() + "!\n")
                 winner = defendPiece
                 loser = attackPiece
             elif defendPiece.getRank() == attackPiece.getRank():
                 if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
-                    self.play(self.shot)
+                    self.play(self.shoot)
                 print(defendPiece.toString() + " and " + attackPiece.toString() + " have both been taken!\n")
                 if attackPiece.getAlliance() == 0:
                     loser = attackPiece

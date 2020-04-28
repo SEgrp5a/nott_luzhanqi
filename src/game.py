@@ -64,12 +64,44 @@ def writeRules():
 
     file.close()
 
+def writeRules2():
+
+    running = True
+    while running:
+        rulesImage = pygame.image.load(".\\bin\\rulepage2.png")
+        rulesImage = pygame.transform.scale(rulesImage,(displayWidth,displayHeight))
+        GAMEDISPLAY.blit(rulesImage,(0,0))
+
+        write_text(displayWidth/2,75,"The Board",black,40)
+
+        mx, my = pygame.mouse.get_pos()
+
+        back_button = pygame.Rect(120,displayHeight-80,200,60)
+        pygame.draw.rect(GAMEDISPLAY,red,back_button)
+        write_text(220,displayHeight-50,'BACK',white,25)
+
+        if back_button.collidepoint((mx, my)):
+            if click:
+                running = False
+
+        click = False
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True 
+        
+        pygame.display.update()
+        FPSCLOCK.tick(FPS)
+
 def loadTitleScreen ():
     titleImage = pygame.image.load(".\\bin\\main.png")
     titleImage = pygame.transform.scale(titleImage,(displayWidth,displayHeight))
     GAMEDISPLAY.blit(titleImage,(0,0))
 
-    write_text(300, 50,"Lu Zhan Qi",red,100)
+    write_text(300, 170,"Lu Zhan Qi",red,100)
 
 def draw(board):
         GAMEDISPLAY.fill(white)
@@ -123,14 +155,33 @@ def rule_menu():
     running = True
     while running:
         writeRules()
+
+        mx, my = pygame.mouse.get_pos()
+
+        nextPage_button = pygame.Rect(displayWidth-310,displayHeight-80,200,60)
+        pygame.draw.rect(GAMEDISPLAY,red,nextPage_button)
+        write_text(displayWidth-210,displayHeight-50,'NEXT PAGE',white,25)
+
+        menu_button = pygame.Rect(120,displayHeight-80,200,60)
+        pygame.draw.rect(GAMEDISPLAY,red,menu_button)
+        write_text(220,displayHeight-50,'MAIN MENU',white,25)
+
+        if nextPage_button.collidepoint((mx, my)):
+            if click:
+                writeRules2()
+        if menu_button.collidepoint((mx, my)):
+            if click:
+                stop_music()
+                running = False
+        
+        click = False
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
-                    stop_music()
-                    running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True 
     
         pygame.display.update()
         FPSCLOCK.tick(FPS)      
@@ -140,6 +191,8 @@ def start_page():
     running = True
     while running:
         for event in pygame.event.get():
+            update(event)
+            draw(board)
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
@@ -153,9 +206,6 @@ def start_page():
                     #del board 
                     #board = Board(100,55,12,5) 
                     running = False
-
-        update(event)
-        draw(board)
 
         pygame.display.update()
         FPSCLOCK.tick(FPS) 
@@ -178,6 +228,7 @@ def pause_page():
                 if event.key == K_SPACE: #return to game
                     stop_music()
                     running = False 
+
         pygame.display.update()
         FPSCLOCK.tick(FPS) 
 
