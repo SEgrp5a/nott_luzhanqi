@@ -2,6 +2,7 @@ import pygame, sys
 from pygame.locals import *
 from gameStates import *
 from GameStateManager import *
+from jukebox import *
 
 red = (255,0,0)
 green = (0,255,0)
@@ -10,12 +11,12 @@ yellow = (255,255,0)
 gray = (100,100,100)
 white = (255,255,255)
 
-menu_music = '.\\bin\\GOT.mp3'
-in_game_music = '.\\bin\\war.mp3'
-rule_music ='.\\bin\\Halo.mp3'
-pausing_music = '.\\bin\\GOT.mp3'
-
-click = False
+#BGM
+BGM = {"MainMenu": '.\\bin\\GOT.mp3', 
+       "Instruction": '.\\bin\\Halo.mp3',
+       "InGame": '.\\bin\\war.mp3',
+       "Pause": '.\\bin\\GOT.mp3',
+       "GameOver": None}
 
 FPS = 30
 displayWidth = 1200
@@ -26,14 +27,8 @@ FPSCLOCK = pygame.time.Clock()
 GAMEDISPLAY = pygame.display.set_mode((displayWidth, displayHeight))
 pygame.display.set_caption("Lu Zhan QI")
 
-def play(music):
-    pygame.mixer.music.load(music)
-    pygame.mixer.music.play(-1)
-
-def stop_music():
-    pygame.mixer.music.stop()
-
 gsm = GameStateManager()
+jukebox = JukeBox()
 
 mainMenu = MainMenu(displayWidth,displayHeight,gsm)
 instruction = Instruction(displayWidth,displayHeight,gsm)
@@ -41,11 +36,19 @@ inGame = None
 pause = Pause(displayWidth,displayHeight,gsm)
 gameOver = None
 
+#Game State
 gameStates = {"MainMenu": mainMenu, 
               "Instruction": instruction, 
               "InGame": inGame,
               "Pause": pause,
               "GameOver": gameOver}
+
+#BGM
+BGM = {"MainMenu": '.\\bin\\GOT.mp3',
+       "Instruction": '.\\bin\\Halo.mp3',
+       "InGame": '.\\bin\\war.mp3',
+       "Pause": '.\\bin\\GOT.mp3',
+       "GameOver": None}
 
 def update(event, gsm, gameStates):
     if gsm.currentGameState == "InGame" and gameStates[gsm.currentGameState] == None:
@@ -59,6 +62,7 @@ def draw(GAMEDISPLAY, gsm, gameStates):
     gameStates[gsm.currentGameState].draw(GAMEDISPLAY)
 
 run = True
+gsm.setState("MainMenu")
 while run:
 
     #Lock Framerate
@@ -68,14 +72,14 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         
-        print(gameStates)
         if gameStates["InGame"] and gsm.currentGameState == "MainMenu":
             dump = gameStates["InGame"]
             gameStates["InGame"] = None
             del dump
         update(event, gsm, gameStates)
         draw(GAMEDISPLAY, gsm, gameStates)
-
+        jukebox.play(BGM[gsm.currentGameState])
+        
     pygame.display.update()
 
 pygame.quit()
