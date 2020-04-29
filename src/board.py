@@ -46,9 +46,9 @@ class Board:
         #done button
         self.doneButton = Tile(1200 - 115, 716 - 55, 100, 40, self.red, text = "Done")
         #Auto player piece setup
-        self.plySetup1 = Tile(1200-575,716-55,170,45,self.green,text="Pre-setup 1")
-        self.plySetup2 = Tile(1200-345,716-55,170,45,self.green,text="Pre-setup 2")
-        self.clear = Tile(1200-460,716-110,170,45,self.green,text="Undo Setup")
+        self.plySetup1 = Tile(1200-375,716-55,110,40,self.green,text="Setup 1")
+        self.plySetup2 = Tile(1200-245,716-55,110,40,self.green,text="Setup 2")
+        self.clear = Tile(1200-335,716-105,170,40,self.green,text="Undo Setup")
         #record game phase
         self.gamePhase = 1
         #AI player
@@ -93,6 +93,13 @@ class Board:
         layout[11][3] = "HQ"
 
         return layout
+
+    def write_text(self,x,y,text,textcolor,fontsize,surface):
+        titleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", fontsize)
+        titleTextSurfaceObj = titleTextObj.render(text, True, textcolor)
+        titleTextRectObj = titleTextSurfaceObj.get_rect()
+        titleTextRectObj.center = (x, y)
+        surface.blit(titleTextSurfaceObj, titleTextRectObj)
 
     def generateTiles(self):
         tiles = []
@@ -240,6 +247,8 @@ class Board:
     def draw(self,surface):
         #Draw board
         surface.blit(self.brdImg,(0,0))
+        self.write_text(1200-545,716-55,'[SPACE KEY = PAUSE]',self.black,23,surface)
+        self.write_text(1200-545,716-25,'[ESC KEY = MAIN MENU]',self.black,23,surface)
         #Draw tiles
         for j in range(self.numCol):
             for i in range(self.numRow):

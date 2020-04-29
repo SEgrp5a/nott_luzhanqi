@@ -116,7 +116,7 @@ class Tile():
 
         #draw text
         if self.text != '':
-            font = pygame.font.SysFont('comicsans', 40)
+            font = pygame.font.Font("bin\Becker.ttf",25)
             text = font.render(self.text, 1, self.textColor)
             #Position the text on the center of the button
             surface.blit(text, (self.x + (self.width / 2 - text.get_width() / 2), self.y + (self.height / 2 - text.get_height() / 2)))
