@@ -98,10 +98,11 @@ class Instruction(GameState):
         self.ruleImages = [pygame.image.load(".\\bin\\scroll.png"),pygame.image.load(".\\bin\\rulepage2.png")]
         self.ruleImages = [pygame.transform.scale(ruleImage,(displayWidth,displayHeight)) for ruleImage in self.ruleImages]
         self.currentPage = 0
-        self.maxPage = 2
+        self.maxPage = len(self.ruleImages)
         #Button
-        self.next_button = Tile(displayWidth-310, displayHeight-80, 200, 60, color = self.red, text = 'NEXT PAGE', textColor = self.black)
-        self.menu_button = Tile(120, displayHeight-80, 200, 60, color = self.red, text = 'MAIN MENU', textColor = self.black)
+        self.prev_button = Tile(120, displayHeight-80, 200, 60, color = self.red, text = 'PREVIOUS', textColor = self.black)
+        self.next_button = Tile(displayWidth-310, displayHeight-80, 200, 60, color = self.red, text = 'NEXT', textColor = self.black)
+        self.menu_button = Tile(displayWidth/2 - 100, displayHeight-80, 200, 60, color = self.red, text = 'MAIN MENU', textColor = self.black)
 
     def draw(self,surface):
         #Show Background
@@ -117,31 +118,16 @@ class Instruction(GameState):
                 y += 25
             file.close()
         #Draw button
-        self.next_button.draw(surface)
         self.menu_button.draw(surface)
+        #draw prev button if not first page
+        if self.currentPage != 0:
+            self.prev_button.draw(surface)
+        #draw next button if not last page
+        if self.currentPage != self.maxPage - 1:
+            self.next_button.draw(surface)
 
     def update(self,event):
-        #handle event on next button
-        outline_next = False
-        outlineColor_next = None
-        #if is hovering on button
-        if 'hover' in self.next_button.handleEvent(event):
-            outline_next = True
-            outlineColor_next = self.black
-        #if button is clicked
-        if 'down' in self.next_button.handleEvent(event):
-            outline_next = True
-            outlineColor_next = self.blue
-        #if button is clicked & released
-        if 'click' in self.next_button.handleEvent(event):
-            #change page
-            self.currentPage = (self.currentPage+1)%2
-        #if mouse exited a button
-        if 'exit' in self.next_button.handleEvent(event):
-            outline_next = False
-        self.next_button.update(self.next_button.getColor(),outline_next,outlineColor_next)
-
-         #handle event on menu button
+        #handle event on menu button
         outline_menu = False
         outlineColor_menu = None
         #if is hovering on button
@@ -155,12 +141,55 @@ class Instruction(GameState):
         #if button is clicked & released
         if 'click' in self.menu_button.handleEvent(event):
             outline_menu = True
+            self.currentPage = 0
             #change to menu
             self.gsm.setState("MainMenu")
         #if mouse exited a button
         if 'exit' in self.menu_button.handleEvent(event):
             outline_menu = False
         self.menu_button.update(self.menu_button.getColor(),outline_menu,outlineColor_menu)
+
+        #handle event on prev button if not first page
+        if self.currentPage != 0:
+            outline_prev = False
+            outlineColor_prev = None
+            #if is hovering on button
+            if 'hover' in self.prev_button.handleEvent(event):
+                outline_prev = True
+                outlineColor_prev = self.black
+            #if button is clicked
+            if 'down' in self.prev_button.handleEvent(event):
+                outline_prev = True
+                outlineColor_prev = self.blue
+            #if button is clicked & released
+            if 'click' in self.prev_button.handleEvent(event):
+                #change page
+                self.currentPage = self.currentPage - 1
+            #if mouse exited a button
+            if 'exit' in self.prev_button.handleEvent(event):
+                outline_prev = False
+            self.prev_button.update(self.prev_button.getColor(),outline_prev,outlineColor_prev)
+
+        #handle event on next button if not last page
+        if self.currentPage != self.maxPage - 1:
+            outline_next = False
+            outlineColor_next = None
+            #if is hovering on button
+            if 'hover' in self.next_button.handleEvent(event):
+                outline_next = True
+                outlineColor_next = self.black
+            #if button is clicked
+            if 'down' in self.next_button.handleEvent(event):
+                outline_next = True
+                outlineColor_next = self.blue
+            #if button is clicked & released
+            if 'click' in self.next_button.handleEvent(event):
+                #change page
+                self.currentPage = self.currentPage + 1
+            #if mouse exited a button
+            if 'exit' in self.next_button.handleEvent(event):
+                outline_next = False
+            self.next_button.update(self.next_button.getColor(),outline_next,outlineColor_next)
 
 class InGame(GameState):
     def __init__(self, width, height, numRow, numCol, gsm):

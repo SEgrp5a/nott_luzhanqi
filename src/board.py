@@ -257,8 +257,7 @@ class Board:
     def draw(self,surface):
         #Draw board
         surface.blit(self.brdImg,(0,0))
-        self.write_text(1200-545,716-55,'[SPACE KEY = PAUSE]',self.black,23,surface)
-        self.write_text(1200-545,716-25,'[ESC KEY = MAIN MENU]',self.black,23,surface)
+        self.write_text(1200-545,716-25,'[ESC = PAUSE]',self.white,23,surface)
         #Draw tiles
         for j in range(self.numCol):
             for i in range(self.numRow):
@@ -267,7 +266,11 @@ class Board:
         #Draw Selection Pane
         #Draw Selection Pane Title
         titleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", 38)
-        titleTextSurfaceObj = titleTextObj.render("PIECES", True, self.white)
+        if self.gamePhase == 1:
+            title = "PIECES"
+        else:
+            title = "DEAD PIECES"
+        titleTextSurfaceObj = titleTextObj.render(title, True, self.white)
         titleTextRectObj = titleTextSurfaceObj.get_rect()
         titleTextRectObj.center = (860, 75)
         surface.blit(titleTextSurfaceObj, titleTextRectObj)

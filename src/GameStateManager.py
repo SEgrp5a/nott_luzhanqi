@@ -5,10 +5,10 @@ class GameStateManager():
                             "InGame": 2, 
                             "Pause": 3, 
                             "GameOver": 4}
-        self.currentGameState = "MainMenu"
+       
+        self.currentGameState = None
         self.prevGameState = None
 
     def setState(self,gameState):
         self.prevGameState = self.currentGameState
         self.currentGameState = gameState
-            
