@@ -689,7 +689,7 @@ class Board:
             #if engineer steps on a landmine
             if attackPiece.toString() == "Landmine" and defendPiece.toString() == "Engineer" or attackPiece.toString() == "Engineer" and defendPiece.toString() == "Landmine":
                 print("Engineer has disarmed the landmine!\n")
-                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0: #only when player makes a move there will be a sound [disarming landmine]
+                if attackPiece.getAlliance() == 0 : #only when player makes a move there will be a sound [disarming landmine]
                     self.play(self.ticking)
                 if attackPiece.toString() == "Engineer":
                     winner = attackPiece
@@ -700,8 +700,10 @@ class Board:
             #if Grenade or Landmine attacks any piece
             elif attackPiece.toString() == "Grenade" or attackPiece.toString() == "Landmine" or defendPiece.toString() == "Grenade" or defendPiece.toString() == "Landmine":
                 print("Both pieces have been taken")
-                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                if attackPiece.getAlliance() == 0 and (attackPiece.toString() == "Landmine" or attackPiece.toString() == "Grenade"):
                     self.play(self.explosion)
+                elif attackPiece.getAlliance() == 0 and (attackPiece.toString() != "Landmine" or attackPiece.toString() != "Grenade"):
+                    self.play(self.shoot)
                 if attackPiece.getAlliance() == 0:
                     loser = attackPiece
                     self.ai.lostPiece = defendPiece
@@ -709,19 +711,19 @@ class Board:
                     loser = defendPiece
                     self.ai.lostPiece = attackPiece
             elif attackPiece.getRank() < defendPiece.getRank():
-                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                if attackPiece.getAlliance() == 0 :
                     self.play(self.shoot)
                 print(attackPiece.toString() + " has taken " + defendPiece.toString() +"!\n")
                 winner = attackPiece
                 loser = defendPiece
             elif defendPiece.getRank() < attackPiece.getRank():
-                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                if attackPiece.getAlliance() == 0 :
                     self.play(self.shoot)
                 print(defendPiece.toString() + " has taken " + attackPiece.toString() + "!\n")
                 winner = defendPiece
                 loser = attackPiece
             elif defendPiece.getRank() == attackPiece.getRank():
-                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                if attackPiece.getAlliance() == 0 :
                     self.play(self.shoot)
                 print(defendPiece.toString() + " and " + attackPiece.toString() + " have both been taken!\n")
                 if attackPiece.getAlliance() == 0:
