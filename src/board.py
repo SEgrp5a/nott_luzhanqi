@@ -266,7 +266,7 @@ class Board:
         #Only draw Selection Pane on setup phase
         #Draw Selection Pane
         #Draw Selection Pane Title
-        titleTextObj = pygame.font.Font("bin\OpenSans.ttf", 38)
+        titleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", 38)
         titleTextSurfaceObj = titleTextObj.render("PIECES", True, self.white)
         titleTextRectObj = titleTextSurfaceObj.get_rect()
         titleTextRectObj.center = (860, 75)
@@ -277,7 +277,7 @@ class Board:
             #Draw piece image
             self.selectionPaneTiles[k].draw(surface)
             #Draw Selection Pane piece's name
-            textObj = pygame.font.Font("bin\OpenSans.ttf", 18)
+            textObj = pygame.font.Font(".\\bin\\Becker.ttf", 18)
             textSurfaceObj = textObj.render(item, True, self.white)
             textRectObj = textSurfaceObj.get_rect()
             textRectObj.center = tuple(x + y for x, y in zip(self.selectionPaneTiles[k].getPos(), (25,-25)))
