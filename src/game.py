@@ -13,6 +13,7 @@ menu_music = '.\\bin\\GOT.mp3'
 In_game_music = '.\\bin\\war.mp3'
 rule_music ='.\\bin\\Halo.mp3'
 pausing_music = '.\\bin\\GOT.mp3'
+gameOver_music = '.\\bin\\GOT.mp3'
 
 click = False
 
@@ -206,6 +207,11 @@ def start_page():
                     #del board 
                     #board = Board(100,55,12,5) 
                     running = False
+                # if gameCondition: #Winning Condition
+                #     stop_music()
+                #     gameOver_page(playerResult)
+                #     #del board
+                #     running = False
 
         pygame.display.update()
         FPSCLOCK.tick(FPS) 
@@ -228,6 +234,54 @@ def pause_page():
                 if event.key == K_SPACE: #return to game
                     stop_music()
                     running = False 
+
+        pygame.display.update()
+        FPSCLOCK.tick(FPS) 
+
+def gameOver_page(playerResult):
+    play(gameOver_music)
+    running = True
+    while running:
+        titleImage = pygame.image.load(".\\bin\\gameover.jpg")
+        titleImage = pygame.transform.scale(titleImage,(displayWidth,displayHeight))
+        GAMEDISPLAY.blit(titleImage,(0,0))
+
+        write_text(displayWidth/2,50,'GAME OVER',red,60)
+
+        if playerResult:
+            write_text(displayWidth/2,150,'CONGRADULATIONS YOU WON',red,60)
+
+        else:
+            write_text(displayWidth/2,150,'YOU LOST THE WAR',red,60)
+
+        mx, my = pygame.mouse.get_pos()
+
+        restart_button = pygame.Rect(displayWidth-310,displayHeight-80,200,60)
+        pygame.draw.rect(GAMEDISPLAY,red,restart_button)
+        write_text(displayWidth-210,displayHeight-50,'PLAY AGAIN',white,25)
+
+        exit_button = pygame.Rect(120,displayHeight-80,200,60)
+        pygame.draw.rect(GAMEDISPLAY,red,exit_button)
+        write_text(220,displayHeight-50,'EXIT GAME',white,25)
+        
+        if restart_button.collidepoint((mx, my)):
+            if click:
+                stop_music()
+                running = False
+        if exit_button.collidepoint((mx, my)):
+            if click:
+                print('EXIT')
+                pygame.quit()
+                sys.exit()
+
+        click = False
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
 
         pygame.display.update()
         FPSCLOCK.tick(FPS) 
