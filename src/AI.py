@@ -150,6 +150,7 @@ class AI():
 
     #generate possible moves and calculate its payoff the return as a list
     def generateMoves(self,piece,orgin,min):
+        canMove = False
         moves = []
         (currentRow, currentCol) = orgin
         attackPayOff = 0 # incentive to attack
@@ -169,10 +170,13 @@ class AI():
                     #calculate payoff
                     payOff = movePayOff + attackPayOff
                     moves.append(((i,j),payOff,action)) #stores the dest, payoff & action of a movable piece
+                    canMove=True
 
-        return moves
+        return moves, canMove
 
     def chooseMove(self):
+        canMove=False
+        temp=False
         currentState = {}  #store the payoff of each move {referenceToPiece: [orgin, [(dest, payOff, action), ...]]}
         for i in range(self.brd.numRow):
             for j in range(self.brd.numCol): # check entire board for AI's piece
@@ -182,7 +186,13 @@ class AI():
         #calculate payoff for all possible moves
         for piece in currentState:
             self.brd.min=False
-            currentState[piece][1] = self.generateMoves(piece,currentState[piece][0],self.brd.min)
+            currentState[piece][1] ,temp = self.generateMoves(piece,currentState[piece][0],self.brd.min)
+            if temp==True:
+                canMove=True
+
+        if canMove==False: #if there is not a single piece AI can move
+            self.brd.end=True
+            self.brd.finalWinner="Player"
 
         #for all possibleMoves
         bestMove = (0.0,None,None,None,None) #(Payoff, referenceToPiece, orgin, dest, action)
@@ -207,7 +217,7 @@ class AI():
                 #calculate payoff for all possible moves
                 for temp in nextState:
                     self.brd.min=True
-                    nextState[temp][1] = self.generateMoves(temp,nextState[temp][0],self.brd.min)
+                    nextState[temp][1],temp = self.generateMoves(temp,nextState[temp][0],self.brd.min)
 
                 #get best payoff for all 'attack' moves
                 min = 0 #maximum lost by enemy's move

@@ -207,11 +207,11 @@ def start_page():
                     #del board 
                     #board = Board(100,55,12,5) 
                     running = False
-                # if gameCondition: #Winning Condition
-                #     stop_music()
-                #     gameOver_page(playerResult)
-                #     #del board
-                #     running = False
+            if board.end == True: #Winning Condition
+                stop_music()
+                gameOver_page(board.finalWinner)
+                #del board
+                running = False
 
         pygame.display.update()
         FPSCLOCK.tick(FPS) 
@@ -248,7 +248,7 @@ def gameOver_page(playerResult):
 
         write_text(displayWidth/2,50,'GAME OVER',red,60)
 
-        if playerResult:
+        if playerResult == "Player":
             write_text(displayWidth/2,150,'CONGRADULATIONS YOU WON',red,60)
 
         else:

@@ -61,6 +61,8 @@ class Board:
         self.explosion = '.\\bin\\explosion.wav'
         self.shoot = '.\\bin\\fire.wav'
         self.ticking = '.\\bin\\TickingBomb.wav'
+        self.end=False
+        self.finalWinner=None
 
     def getGamePhase():
         return self.gamePhase
@@ -173,14 +175,11 @@ class Board:
         return spawn
 
     def checkDone(self):
-        complete=False
+        complete=True
         if self.currentPiece == None:
             for k in self.pieceData:
                 if self.pieceData[k][0] == 0:
                     complete = True
-                #else:
-                #    # can do a pop-up to let user know not all pieces are set
-                #    break
             if complete == True:
                 self.ai = AI(self)  #initialize AI
                 self.ai.placePieces()
@@ -480,11 +479,14 @@ class Board:
 
     #handle mouse click
     def handleEvent(self, event):
+        canMove = False
+        checked = False
         #handle event on board tiles
         for j in range(self.numCol):
             for i in range(self.numRow):
                 outline_tile = False
                 outlineColor_tile = None
+
                 #if is hovering on tile
                 if 'hover' in self.tiles[i][j].handleEvent(event):
                     outline_tile = True
@@ -545,6 +547,24 @@ class Board:
                                 start,dest = self.ai.makeMove()
                                 self.aiLastMove = [start, dest]
                                 self.aiMoved = True
+
+                                #check if the player has any moves to make
+                                currentState={}
+                                
+                                for i in range(self.numRow):
+                                    for j in range(self.numCol): # check entire board for Player's piece
+                                        if self.tiles[i][j].getPiece() != None and self.tiles[i][j].getPiece().getAlliance() == 0: # if the piece is Player's's piece
+                                            currentState[self.tiles[i][j].getPiece()] = [(i,j),None]
+
+                                for piece in currentState:
+                                    self.min=False
+                                    (currentRow, currentCol) = currentState[piece][0]
+                                    for i in range(self.numRow):
+                                        for j in range(self.numCol): # check entire board for Player's piece
+                                            action = self.checkAvailableMovement(i,j,piece,currentRow,currentCol,min)
+                                            if action != None and action != "no move":
+                                                canMove=True
+                                    checked=True
                 #if mouse exited a tile
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
@@ -674,6 +694,10 @@ class Board:
                 outline_done = False
             self.clear.update(self.clear.getColor(),outline_done,outlineColor_done)
 
+        if canMove == False and checked== True: # there is no valid move so the winner is AI
+            self.end = True
+            self.finalWinner="Computer"
+
     #referee will decide on the result of an attack action
     def referee(self, attackPiece, defendPiece):
         winner = None   #winner = None when draw
@@ -726,6 +750,19 @@ class Board:
                 else:
                     loser = defendPiece
                     self.ai.lostPiece = attackPiece
+        elif defendPiece.toString() == "Flag":
+            if attackPiece.getAlliance() ==0:
+                print("Player has won\n")
+                self.end=True
+                self.finalWinner="Player"
+                loser=defendPiece
+                winner=attackPiece
+            else:
+                print("Computer has won\n")
+                self.end=True
+                self.finalWinner="Computer"
+                loser=defendPiece
+                winner=attackPiece
         ##if Flag is captured
         #elif piece1.toString() == "Flag":
         #    print(piece2.toString() + " has captured the Flag\n")   #attacking piece will not be Flag (flag cannot move)
