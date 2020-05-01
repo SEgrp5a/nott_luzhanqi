@@ -61,6 +61,7 @@ class Board:
         self.explosion = '.\\bin\\explosion.wav'
         self.shoot = '.\\bin\\fire.wav'
         self.ticking = '.\\bin\\TickingBomb.wav'
+        self.win=None
         #combat log
         self.log = [None, None, None]
 
@@ -329,6 +330,36 @@ class Board:
             #grenade cannot be placed at 1st row
             return False
         return True
+    
+    #check for game over
+    def checkGameOver(self,alliance):
+        currentState={}
+        canMove=False
+        for i in range(self.numRow):
+            for j in range(self.numCol): # check entire board for alliance's piece
+                if self.tiles[i][j].getPiece() != None and self.tiles[i][j].getPiece().getAlliance() == alliance: # get the alliance's piece
+                    currentState[self.tiles[i][j].getPiece()] = [(i,j),None]
+
+        for piece in currentState:
+            self.min=False # just check for move
+            currentRow, currentCol = currentState[piece][0]
+            for i in range(self.numRow):
+                for j in range(self.numCol): # check entire board for alliance's piece movement
+                    action = self.checkAvailableMovement(i,j,piece,currentRow,currentCol,min)
+                    if action != None and action != "no move":
+                        canMove=True
+                        break
+                if canMove==True:
+                    break
+                        
+        if canMove==True:
+            return False
+        else:
+            if alliance == 0: # player cannot move
+                self.win=False
+            else:
+                self.win=True
+                return True
 
     #check if movement is vailable
     def checkAvailableMovement(self, row, col, piece, pieceRow, pieceCol, checkEngineer = True):
@@ -552,11 +583,13 @@ class Board:
                                 self.pieceCol = j
                                 self.tiles[i][j].setPiece(None)
                         else:
+                            self.checkGameOver(0) #check my available movement before taking an action
                             if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
                                 #whenever the player's turn is over.. then the AI will make move
-                                start,dest = self.ai.makeMove()
-                                self.aiLastMove = [start, dest]
-                                self.aiMoved = True
+                                if self.checkGameOver(1) == False:
+                                    start,dest = self.ai.makeMove()
+                                    self.aiLastMove = [start, dest]
+                                    self.aiMoved = True
                 #if mouse exited a tile
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
@@ -745,6 +778,17 @@ class Board:
                 else:
                     loser = defendPiece
                     self.ai.lostPiece = attackPiece
+            elif defendPiece.toString() == "Flag":
+                if attackPiece.getAlliance() ==0:
+                    print("Player has won\n")
+                    self.win=True
+                    loser=defendPiece
+                    winner=attackPiece
+                else:
+                    print("Computer has won\n")
+                    self.win=False
+                    loser=defendPiece
+                    winner=attackPiece
         ##if Flag is captured
         #elif piece1.toString() == "Flag":
         #    print(piece2.toString() + " has captured the Flag\n")   #attacking piece will not be Flag (flag cannot move)
