@@ -1,1 +1,0 @@
-attackPiece.toString() == "Engineer" and defendPiece.toString() == "Landmine"

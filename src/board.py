@@ -56,13 +56,14 @@ class Board:
         #AI condition
         self.aiMoved = False
         self.aiLastMove = [None, None] #[start, dest]
-        self.min = False # false if calculating max, true if calculating min
         #sound effects
         self.friendFire = '.\\bin\\Friendly Fire.wav'
         self.explosion = '.\\bin\\explosion.wav'
         self.shoot = '.\\bin\\fire.wav'
         self.ticking = '.\\bin\\TickingBomb.wav'
         self.win=None
+        #combat log
+        self.log = [None, None, None]
 
     def getGamePhase():
         return self.gamePhase
@@ -102,11 +103,12 @@ class Board:
         return layout
 
     def write_text(self,x,y,text,textcolor,fontsize,surface):
-        titleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", fontsize)
-        titleTextSurfaceObj = titleTextObj.render(text, True, textcolor)
-        titleTextRectObj = titleTextSurfaceObj.get_rect()
-        titleTextRectObj.center = (x, y)
-        surface.blit(titleTextSurfaceObj, titleTextRectObj)
+        if text:
+            titleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", fontsize)
+            titleTextSurfaceObj = titleTextObj.render(text, True, textcolor)
+            titleTextRectObj = titleTextSurfaceObj.get_rect()
+            titleTextRectObj.center = (x, y)
+            surface.blit(titleTextSurfaceObj, titleTextRectObj)
 
     def play(self,sound):
         sounds = pygame.mixer.Sound(sound)
@@ -258,7 +260,12 @@ class Board:
     def draw(self,surface):
         #Draw board
         surface.blit(self.brdImg,(0,0))
-        self.write_text(1200-545,716-25,'[ESC = PAUSE]',self.white,23,surface)
+        #Show Controls
+        self.write_text(1200-545, 716-25, '[ESC = PAUSE]', self.white, 23, surface)
+        #Show combat log
+        self.write_text(1200-200, 716-75, self.log[-3], self.white, 20, surface)
+        self.write_text(1200-200, 716-50, self.log[-2], self.white, 20, surface)
+        self.write_text(1200-200, 716-25, self.log[-1], self.white, 20, surface)
         #Draw tiles
         for j in range(self.numCol):
             for i in range(self.numRow):
@@ -715,15 +722,12 @@ class Board:
     def referee(self, attackPiece, defendPiece):
         winner = None   #winner = None when draw
         loser = None    #loser = player piece when draw
-        #checking alliances
-        if attackPiece.getAlliance() == defendPiece.getAlliance():
-            print('You can not attack your own piece!\n')
-        elif attackPiece.toString() != "Flag" and defendPiece.toString() != "Flag":
+        if attackPiece.toString() != "Flag" and defendPiece.toString() != "Flag":
             #if engineer steps on a landmine
             if attackPiece.toString() == "Landmine" and defendPiece.toString() == "Engineer" or attackPiece.toString() == "Engineer" and defendPiece.toString() == "Landmine":
-                print("Engineer has disarmed the landmine!\n")
-                if attackPiece.getAlliance() == 0 : #only when player makes a move there will be a sound [disarming landmine]
-                    self.play(self.ticking)
+                if attackPiece.getAlliance() == 0 : #when player disarm a landmine
+                    self.play(self.ticking) #play sound effect
+                    self.log.append("Your engineer has disarmed a landmine!")
                 if attackPiece.toString() == "Engineer":
                     winner = attackPiece
                     loser = defendPiece
@@ -732,11 +736,13 @@ class Board:
                     loser = attackPiece
             #if Grenade or Landmine attacks any piece
             elif attackPiece.toString() == "Grenade" or attackPiece.toString() == "Landmine" or defendPiece.toString() == "Grenade" or defendPiece.toString() == "Landmine":
-                print("Both pieces have been taken")
+                if attackPiece.getAlliance() != 0:
+                    self.log.append("Your " + defendPiece.toString() + " is attacked")
+                else:
+                    self.play(self.shoot)
+                self.log.append("Both pieces have been taken")
                 if attackPiece.getAlliance() == 0 and (attackPiece.toString() == "Landmine" or attackPiece.toString() == "Grenade"):
                     self.play(self.explosion)
-                elif attackPiece.getAlliance() == 0 and (attackPiece.toString() != "Landmine" or attackPiece.toString() != "Grenade"):
-                    self.play(self.shoot)
                 if attackPiece.getAlliance() == 0:
                     loser = attackPiece
                     self.ai.lostPiece = defendPiece
@@ -744,21 +750,27 @@ class Board:
                     loser = defendPiece
                     self.ai.lostPiece = attackPiece
             elif attackPiece.getRank() < defendPiece.getRank():
-                if attackPiece.getAlliance() == 0 :
+                if attackPiece.getAlliance() == 0:
                     self.play(self.shoot)
-                print(attackPiece.toString() + " has taken " + defendPiece.toString() +"!\n")
+                    self.log.append("Your " + attackPiece.toString() + " has taken an enemy piece")
+                else:
+                    self.log.append("An enemy piece has taken your " + defendPiece.toString())
                 winner = attackPiece
                 loser = defendPiece
             elif defendPiece.getRank() < attackPiece.getRank():
                 if attackPiece.getAlliance() == 0 :
                     self.play(self.shoot)
-                print(defendPiece.toString() + " has taken " + attackPiece.toString() + "!\n")
+                    self.log.append("An enemy piece has taken your " + attackPiece.toString())
+                else:
+                    self.log.append("Your " + defendPiece.toString() + " has taken an enemy piece")
                 winner = defendPiece
                 loser = attackPiece
             elif defendPiece.getRank() == attackPiece.getRank():
                 if attackPiece.getAlliance() == 0 :
                     self.play(self.shoot)
-                print(defendPiece.toString() + " and " + attackPiece.toString() + " have both been taken!\n")
+                else:
+                    self.log.append("Your " + defendPiece.toString() + " is attacked")
+                self.log.append("Both pieces have been taken")
                 if attackPiece.getAlliance() == 0:
                     loser = attackPiece
                     self.ai.lostPiece = defendPiece
@@ -808,6 +820,7 @@ class Board:
                 self.tiles[i][j].setPiece(winner)
             else:
                 self.tiles[i][j].setPiece(piece)
+                self.log.append("The enemy moved")
             self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
             self.currentPiece = None
             self.pieceRow = None
