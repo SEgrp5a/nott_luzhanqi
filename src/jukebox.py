@@ -5,9 +5,12 @@ class JukeBox():
         self.now_playing = None
 
     def play(self, music):
+        if not music:
+            return
         if self.now_playing != music:
             music_player.load(music)
             music_player.play(-1)
+            #music_player.set_volume(0.5)
             self.now_playing = music
 
     def stop_music():

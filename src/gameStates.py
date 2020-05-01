@@ -270,3 +270,75 @@ class Pause(GameState):
         if 'exit' in self.menu_button.handleEvent(event):
             outline_menu = False
         self.menu_button.update(self.menu_button.getColor(),outline_menu,outlineColor_menu)
+
+class GameOver(GameState):
+    def __init__(self, displayWidth, displayHeight, gsm):
+        super().__init__(gsm)
+        self.displayWidth = displayWidth
+        #Image
+        self.gameOverImage = pygame.image.load(".\\bin\\gameover.jpg")
+        self.gameOverImage = pygame.transform.scale(self.gameOverImage,(displayWidth,displayHeight))
+        #Button
+        self.menu_button = Tile(displayWidth/2 - 100, displayHeight/2 + 10, 200, 80, color = self.red, text = 'MENU', textColor = self.black)
+        self.exit_button = Tile(displayWidth/2 - 100, displayHeight/2 + 110, 200, 80, color = self.red, text = 'EXIT', textColor = self.black)
+        #Result
+        self.win = None
+        self.result = None
+
+    def draw(self, surface):
+        #Show Background
+        surface.blit(self.gameOverImage,(0,0))
+        #Write Title
+        self.write_text(self.displayWidth/2, 50, "GAME OVER", self.red, 60, surface)
+        #Show result
+        if self.win:
+            self.result = "CONGRADULATIONS YOU WON"
+        else:
+            self.result = "YOU LOST THE WAR"
+        self.write_text(self.displayWidth/2, 150, self.result, self.red, 60, surface)
+        #Draw Button
+        self.menu_button.draw(surface)
+        self.exit_button.draw(surface)
+
+    def update(self, event):
+        #handle event on menu button
+        outline_menu = False
+        outlineColor_menu = None
+        #if is hovering on button
+        if 'hover' in self.menu_button.handleEvent(event):
+            outline_menu = True
+            outlineColor_menu = self.black
+        #if button is clicked
+        if 'down' in self.menu_button.handleEvent(event):
+            outline_menu = True
+            outlineColor_menu = self.blue
+        #if button is clicked & released
+        if 'click' in self.menu_button.handleEvent(event):
+            outline_menu = True
+            #change to menu state
+            self.gsm.setState("MainMenu")
+        #if mouse exited a button
+        if 'exit' in self.menu_button.handleEvent(event):
+            outline_menu = False
+        self.menu_button.update(self.menu_button.getColor(),outline_menu,outlineColor_menu)
+
+        #handle event on exit button
+        outline_exit = False
+        outlineColor_exit = None
+        #if is hovering on button
+        if 'hover' in self.exit_button.handleEvent(event):
+            outline_exit = True
+            outlineColor_exit = self.black
+        #if button is clicked
+        if 'down' in self.exit_button.handleEvent(event):
+            outline_exit = True
+            outlineColor_exit = self.blue
+        #if button is clicked & released
+        if 'click' in self.exit_button.handleEvent(event):
+            outline_exit = True
+            #quit game
+            self.gsm.setState("Exit")
+        #if mouse exited a button
+        if 'exit' in self.exit_button.handleEvent(event):
+            outline_exit = False
+        self.exit_button.update(self.exit_button.getColor(),outline_exit,outlineColor_exit)

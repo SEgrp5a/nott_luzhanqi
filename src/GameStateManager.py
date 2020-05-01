@@ -1,11 +1,7 @@
 class GameStateManager():
     def __init__(self):
-        self.game_states = {"MainMenu": 0, 
-                            "Instruction": 1, 
-                            "InGame": 2, 
-                            "Pause": 3, 
-                            "GameOver": 4}
-       
+        self.game_states = ["MainMenu", "Instruction", "InGame", "Pause", "GameOver", "Exit"]
+
         self.currentGameState = None
         self.prevGameState = None
 
