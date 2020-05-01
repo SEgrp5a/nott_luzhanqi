@@ -1,6 +1,6 @@
 import pygame
 import operator
-import random
+import numpy.random as rng
 from pieces import *
 
 class AI():
@@ -36,12 +36,12 @@ class AI():
         self.lostPiece = None   #record what piece is lost this round
         self.prediction = self.getPrediction()
         self.playerDeadPieces = []
-        self.moveHeuristic = [[1,1,1,1,1],
-                              [1,1,1,1,1],
-                              [1,1,1,1,1],
-                              [1,1,1,1,1],
-                              [1,1,1,1,1],
-                              [1,1,1,1,1],
+        self.moveHeuristic = [[3,1,3,1,3],
+                              [3,3,3,3,3],
+                              [3,2,1,2,3],
+                              [3,1,2,1,3],
+                              [3,2,1,2,3],
+                              [3,3,3,3,3],
                               [3,3,3,3,3],
                               [3,2,1,2,3],
                               [3,1,2,1,3],
@@ -220,20 +220,31 @@ class AI():
                         if min > temp2[1] and temp2[2] == 'attack': #only calculate min for 'attack' move
                             attackCounter = attackCounter + 1
                             min = temp2[1]
+                        ul = (nextState[temp][0][0] - 1, nextState[temp][0][1] - 1) #upperleft
+                        up = (nextState[temp][0][0] - 1, nextState[temp][0][1])     #up
+                        ur = (nextState[temp][0][0] - 1, nextState[temp][0][1] + 1) #upperright
+                        lf = (nextState[temp][0][0], nextState[temp][0][1] - 1)     #left
+                        og = (nextState[temp][0][0], nextState[temp][0][1])         #original
+                        rg = (nextState[temp][0][0], nextState[temp][0][1] + 1)     #right
+                        dl = (nextState[temp][0][0] + 1, nextState[temp][0][1] - 1) #downleft
+                        dw = (nextState[temp][0][0] + 1, nextState[temp][0][1])     #down
+                        dr = (nextState[temp][0][0] + 1, nextState[temp][0][1] + 1) #downright
+                        tempDest = (temp2[0][0],temp2[0][1])
                         # special case for if there is enemy piece in camp
-                        elif temp2[2] == None and self.brd.layout[temp2[0][0]][temp2[0][1]] == "CP": #check if it is camp
+                        if temp2[2] == None and self.brd.layout[temp2[0][0]][temp2[0][1]] == "CP" and (up == tempDest or dw == tempDeat or lf == tempDeat or rg == tempDeat or ul == tempDeat or ur == tempDeat or dl == tempDeat or dr == tempDeat): #check if it is an adjacent camp
                             if self.brd.tiles[temp2[0][0]][temp2[0][1]].getPiece() != None and self.brd.tiles[i][j].getPiece().getAlliance() != 1: # check for piece and its' alliance
-                                    attackCounter = attackCounter + 1
-                                    min = temp2[1]
+                                attackCounter = attackCounter + 1
+                                min = self.moveHeuristic[tempDeat[0]][tempDeat[1]] + self.calcAttack(temp,temp.getRank(),self.prediction[self.brd.tiles[temp2[0][0]][temp2[0][1]].getPiece()])
 
                 if attackCounter == 0: #if pieces cannot be attacked next round
                     min = 10
 
-                if bestMove[0] < max + min:
-                    bestMove = (max + min, piece, currentState[piece][0], move[0], move[2])
+                result = (max + min) * (rng.rand() * 0.2) + 0.9 #added randomness to allow unpredicted moves
+                if bestMove[0] < result:
+                    bestMove = (result, piece, currentState[piece][0], move[0], move[2])
                 
                 #debug
-                default[move[0][0]][move[0][1]] = max + min
+                default[move[0][0]][move[0][1]] = result
 
                 #revert to original state
                 self.brd.tiles[currentState[piece][0][0]][currentState[piece][0][1]].setPiece(piece)
@@ -269,6 +280,6 @@ class AI():
         payoff, self.currentPiece, orgin, dest, action = self.chooseMove() # returns piece to move, destination of move, current location of piece
 
         self.brd.tiles[orgin[0]][orgin[1]].setPiece(None)
-        self.brd.takeAction(self.currentPiece, (self.brd.checkAvailableMovement(dest[0], dest[1], self.currentPiece, orgin[0], orgin[1])), (dest[0],dest[1]))
+        self.brd.takeAction(self.currentPiece, (self.brd.checkAvailableMovement(dest[0], dest[1], self.currentPiece, orgin[0], orgin[1], True)), (dest[0],dest[1]))
 
         return orgin, dest

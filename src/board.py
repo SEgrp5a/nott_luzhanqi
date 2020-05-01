@@ -112,6 +112,7 @@ class Board:
     def play(self,sound):
         sounds = pygame.mixer.Sound(sound)
         pygame.mixer.Sound.play(sounds)
+        pygame.mixer_music.set_volume(0.5)
 
     def generateTiles(self):
         tiles = []
@@ -345,10 +346,10 @@ class Board:
         if piece.toString() == "Landmine" or piece.toString() == "Flag":
             return None    #landmine and flag cannot be move
         #if no move
-        if og == (row, col):
+        elif og == (row, col):
             return "no move"
         #if engineer on railway
-        if checkEngineer and self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
+        elif checkEngineer and self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
             railwayGraph = {}   #will contain adjacent nodes of the pos ({0 : [1, 10], ...})
             index = 0   #label the nodes (key for railwayGraph)
             railwayList = []    #will contain all railway counting up to down, left to right ([(row, col), ...]) (railwayList[vertex] will have result for the location of railway)
@@ -456,7 +457,7 @@ class Board:
                         action = None
                         break
         #if currently on camp
-        if self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+        elif self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
@@ -464,13 +465,13 @@ class Board:
             elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
                 action = None
         #if moving to camp
-        if self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+        elif self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             else:
                 action = None
         #horizontal movement
-        if lf == (row, col) or rg == (row, col):
+        elif lf == (row, col) or rg == (row, col):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
@@ -478,7 +479,7 @@ class Board:
             elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
                 action = None
         #vertical movement
-        if up == (row, col) or dw == (row, col):
+        elif up == (row, col) or dw == (row, col):
             if up == (5, 1) or up == (5, 3) or dw == (6, 1) or dw == (6, 3):    #check if not blocked by mountain range
                 action == None
             elif not self.tiles[row][col].getPiece():
@@ -704,10 +705,10 @@ class Board:
             #if Grenade or Landmine attacks any piece
             elif attackPiece.toString() == "Grenade" or attackPiece.toString() == "Landmine" or defendPiece.toString() == "Grenade" or defendPiece.toString() == "Landmine":
                 if attackPiece.getAlliance() != 0:
-                    self.log.append("Your " + defendPiece.toString() + " is attacked")
+                    self.log.append("Your " + defendPiece.toString() + " and an enemy is taken")
                 else:
                     self.play(self.shoot)
-                self.log.append("Both pieces have been taken")
+                    self.log.append("Your " + attackPiece.toString() + " and an enemy is taken")
                 if attackPiece.getAlliance() == 0 and (attackPiece.toString() == "Landmine" or attackPiece.toString() == "Grenade"):
                     self.play(self.explosion)
                 if attackPiece.getAlliance() == 0:
@@ -735,9 +736,9 @@ class Board:
             elif defendPiece.getRank() == attackPiece.getRank():
                 if attackPiece.getAlliance() == 0 :
                     self.play(self.shoot)
+                    self.log.append("Your " + attackPiece.toString() + " and an enemy is taken")
                 else:
-                    self.log.append("Your " + defendPiece.toString() + " is attacked")
-                self.log.append("Both pieces have been taken")
+                    self.log.append("Your " + defendPiece.toString() + " and an enemy is taken")
                 if attackPiece.getAlliance() == 0:
                     loser = attackPiece
                     self.ai.lostPiece = defendPiece
