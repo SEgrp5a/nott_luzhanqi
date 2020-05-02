@@ -262,7 +262,10 @@ class Board:
         #Draw board
         surface.blit(self.brdImg,(0,0))
         #Show Controls
-        self.write_text(1200-545, 716-25, '[ESC = PAUSE]', self.white, 23, surface)
+        self.write_text(1200-610, 30, '[ESC = PAUSE]', self.black, 23, surface)
+        #Show referee log:
+        if self.gamePhase == 2:
+            self.write_text(1200-530, 716 - 50, 'REFEREE LOG:', self.green, 23, surface)
         #Show combat log
         self.write_text(1200-200, 716-75, self.log[-3], self.white, 20, surface)
         self.write_text(1200-200, 716-50, self.log[-2], self.white, 20, surface)
@@ -729,10 +732,10 @@ class Board:
             #if Grenade or Landmine attacks any piece
             elif attackPiece.toString() == "Grenade" or attackPiece.toString() == "Landmine" or defendPiece.toString() == "Grenade" or defendPiece.toString() == "Landmine":
                 if attackPiece.getAlliance() != 0:
-                    self.log.append("Your " + defendPiece.toString() + " and an enemy is taken")
+                    self.log.append("Your " + defendPiece.toString() + " and enemy were taken")
                 else:
                     self.play(self.shoot)
-                    self.log.append("Your " + attackPiece.toString() + " and an enemy is taken")
+                    self.log.append("Your " + attackPiece.toString() + " and enemy were taken")
                 if attackPiece.getAlliance() == 0 and (attackPiece.toString() == "Landmine" or attackPiece.toString() == "Grenade"):
                     self.play(self.explosion)
                 if attackPiece.getAlliance() == 0:
