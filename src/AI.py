@@ -147,7 +147,7 @@ class AI():
         if success > 0.8: # if it has a 80% chance of winning
             return success
         else:
-            return (1 - success) #lower the success rate to deter the move
+            return success-0.5 #lower the success rate to deter the move
 
     #generate possible moves and calculate its payoff the return as a list
     def generateMoves(self,piece,orgin,checkEngineer):
@@ -168,9 +168,9 @@ class AI():
                         attackPayOff = self.calcAttack(piece, piece.getRank(), self.prediction[self.brd.tiles[i][j].getPiece()]) # calculates the possibility of winning the fight
                         #if the enemy piece is at a critical position which could result in a loss
                         if (i,j) in self.criticalPos:
-                            attackPayOff = 5 #attack to prevent losing the game
+                            attackPayOff = attackPayOff * 5 #attack to prevent losing the game
                     #calculate payoff
-                    payOff = movePayOff * attackPayOff
+                    payOff = movePayOff + attackPayOff
                     moves.append(((i,j),payOff,action)) #stores the dest, payoff & action of a movable piece
 
         return moves
