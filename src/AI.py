@@ -36,18 +36,19 @@ class AI():
         self.lostPiece = None   #record what piece is lost this round
         self.prediction = self.getPrediction()
         self.playerDeadPieces = []
-        self.moveHeuristic = [[3,1,3,1,3],
-                              [3,3,3,3,3],
-                              [3,2,1,2,3],
-                              [3,1,2,1,3],
-                              [3,2,1,2,3],
-                              [3,3,3,3,3],
+        self.moveHeuristic = [[2,1,2,1,2],
+                              [2,2,2,2,2],
+                              [2,2,1,2,2],
+                              [2,1,2,1,2],
+                              [2,2,1,2,2],
+                              [2,2,2,2,2],
                               [3,3,3,3,3],
                               [3,2,1,2,3],
                               [3,1,2,1,3],
                               [3,2,1,2,3],
                               [4,5,4,5,4],
                               [5,6,5,6,5]] #subject to change
+        self.criticalPos = [(0,0),(0,2),(0,4),(1,0),(1,1),(1,2),(1,3),(1,4)] #location with danger of game over
 
     def getPrediction(self):
         prediction = {}
@@ -126,11 +127,12 @@ class AI():
     def calcAttack(self,piece,myRank,enemies): # receives current piece,current piece rank, list of pieces the opponent can be
         willLoseTo = 0
         worth = 0 # for if my piece is grenade
+        # If the enemy piece has a chance to be a flag, attack immediately if possible
+        if "Flag" in enemies: 
+            return 5
         for enemy in enemies:
             enemyRank = self.rankData[str(enemy)]
-            if str(enemy) == "Flag": # If the enemy piece has a chance to be a flag, attack immediately if possible
-                return 10
-            elif piece.toString() == "Grenade" and enemyRank[0] < 4: # grenade should try to fight pieces with higher power (lieutenant and above)
+            if piece.toString() == "Grenade" and enemyRank[0] < 4: # grenade should try to fight pieces with higher power (lieutenant and above)
                 worth = worth + 1 # could be a high level piece
             elif myRank > enemyRank[0]:  # rank higher = power lower
                 willLoseTo = willLoseTo + 1 # records the pieces it will lose to
@@ -142,20 +144,20 @@ class AI():
                 return 0
         else:
             success = 1 - (willLoseTo/len(enemies)) # returns the probability of winning the battle
-        if success > 0.74: # if it has a 75% chance of winning
+        if success > 0.8: # if it has a 80% chance of winning
             return success
         else:
-            return (0 - success) #returns the success rate as a negative value to deter the move
+            return (1 - success) #lower the success rate to deter the move
 
     #generate possible moves and calculate its payoff the return as a list
     def generateMoves(self,piece,orgin,checkEngineer):
         moves = []
         (currentRow, currentCol) = orgin
-        attackPayOff = 0 # incentive to attack
-        movePayOff = 0 # incentive to move
 
         for i in range(self.brd.numRow):  #i ,j = destination
             for j in range(self.brd.numCol):
+                attackPayOff = 0 # incentive to attack
+                movePayOff = 0 # incentive to move
                 self.brd.tiles[currentRow][currentCol].setPiece(None) # to ignore counting the current place as a dead end
                 action = self.brd.checkAvailableMovement(i,j,piece,currentRow,currentCol,checkEngineer) # checks for all available moves in the map
                 self.brd.tiles[currentRow][currentCol].setPiece(piece)
@@ -164,9 +166,11 @@ class AI():
                     movePayOff = self.moveHeuristic[i][j]
                     if action == "attack": #if there is a piece on this tile to attack
                         attackPayOff = self.calcAttack(piece, piece.getRank(), self.prediction[self.brd.tiles[i][j].getPiece()]) # calculates the possibility of winning the fight
-
+                        #if the enemy piece is at a critical position which could result in a loss
+                        if (i,j) in self.criticalPos:
+                            attackPayOff = 5 #attack to prevent losing the game
                     #calculate payoff
-                    payOff = movePayOff + attackPayOff
+                    payOff = movePayOff * attackPayOff
                     moves.append(((i,j),payOff,action)) #stores the dest, payoff & action of a movable piece
 
         return moves
@@ -239,12 +243,12 @@ class AI():
                 if attackCounter == 0: #if pieces cannot be attacked next round
                     min = 10
 
-                result = (max + min) * (rng.rand() * 0.2) + 0.9 #added randomness to allow unpredicted moves
-                if bestMove[0] < result:
-                    bestMove = (result, piece, currentState[piece][0], move[0], move[2])
+                payoff = (max + min) * ((rng.rand() * 0.1) + 0.95) #added randomness to allow unpredicted moves (range = (0.95, 1.05))
+                if bestMove[0] < payoff:
+                    bestMove = (payoff, piece, currentState[piece][0], move[0], move[2])
                 
                 #debug
-                default[move[0][0]][move[0][1]] = result
+                default[move[0][0]][move[0][1]] = payoff
 
                 #revert to original state
                 self.brd.tiles[currentState[piece][0][0]][currentState[piece][0][1]].setPiece(piece)
