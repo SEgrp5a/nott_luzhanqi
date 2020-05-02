@@ -61,7 +61,7 @@ class Board:
         self.explosion = '.\\bin\\explosion.wav'
         self.shoot = '.\\bin\\fire.wav'
         self.ticking = '.\\bin\\TickingBomb.wav'
-        self.win=None
+        self.win = None
         #combat log
         self.log = [None, None, None]
 
@@ -334,32 +334,19 @@ class Board:
     #check for game over
     def checkGameOver(self,alliance):
         currentState={}
-        canMove=False
         for i in range(self.numRow):
-            for j in range(self.numCol): # check entire board for alliance's piece
+            for j in range(self.numCol): # check entire board for pieces of the alliance
                 if self.tiles[i][j].getPiece() != None and self.tiles[i][j].getPiece().getAlliance() == alliance: # get the alliance's piece
                     currentState[self.tiles[i][j].getPiece()] = [(i,j),None]
 
         for piece in currentState:
-            self.min=False # just check for move
             currentRow, currentCol = currentState[piece][0]
             for i in range(self.numRow):
                 for j in range(self.numCol): # check entire board for alliance's piece movement
-                    action = self.checkAvailableMovement(i,j,piece,currentRow,currentCol,min)
+                    action = self.checkAvailableMovement(i,j,piece,currentRow,currentCol,False) #not checking for engineer to save compute time
                     if action != None and action != "no move":
-                        canMove=True
-                        break
-                if canMove==True:
-                    break
-                        
-        if canMove==True:
-            return False
-        else:
-            if alliance == 0: # player cannot move
-                self.win=False
-            else:
-                self.win=True
-                return True
+                        return False #not game over
+        return True
 
     #check if movement is vailable
     def checkAvailableMovement(self, row, col, piece, pieceRow, pieceCol, checkEngineer = True):
@@ -583,13 +570,17 @@ class Board:
                                 self.pieceCol = j
                                 self.tiles[i][j].setPiece(None)
                         else:
-                            self.checkGameOver(0) #check my available movement before taking an action
+                            if self.checkGameOver(0): #check my available movement before taking an action
+                                self.win = False
+                                return
                             if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
                                 #whenever the player's turn is over.. then the AI will make move
-                                if self.checkGameOver(1) == False:
-                                    start,dest = self.ai.makeMove()
-                                    self.aiLastMove = [start, dest]
-                                    self.aiMoved = True
+                                if self.checkGameOver(1):
+                                    self.win = True
+                                    return
+                                start,dest = self.ai.makeMove()
+                                self.aiLastMove = [start, dest]
+                                self.aiMoved = True
                 #if mouse exited a tile
                 if 'exit' in self.tiles[i][j].handleEvent(event):
                     outline_tile = False
@@ -750,6 +741,7 @@ class Board:
                 else:
                     loser = defendPiece
                     self.ai.lostPiece = attackPiece
+            #if attacking piece won
             elif attackPiece.getRank() < defendPiece.getRank():
                 if attackPiece.getAlliance() == 0:
                     self.play(self.shoot)
@@ -758,6 +750,7 @@ class Board:
                     self.log.append("An enemy piece has taken your " + defendPiece.toString())
                 winner = attackPiece
                 loser = defendPiece
+            #if attacking piece lost
             elif defendPiece.getRank() < attackPiece.getRank():
                 if attackPiece.getAlliance() == 0 :
                     self.play(self.shoot)
@@ -766,6 +759,7 @@ class Board:
                     self.log.append("Your " + defendPiece.toString() + " has taken an enemy piece")
                 winner = defendPiece
                 loser = attackPiece
+            #if draw
             elif defendPiece.getRank() == attackPiece.getRank():
                 if attackPiece.getAlliance() == 0 :
                     self.play(self.shoot)
@@ -778,23 +772,24 @@ class Board:
                 else:
                     loser = defendPiece
                     self.ai.lostPiece = attackPiece
-            elif defendPiece.toString() == "Flag":
-                if attackPiece.getAlliance() ==0:
-                    print("Player has won\n")
-                    self.win=True
-                    loser=defendPiece
-                    winner=attackPiece
-                else:
-                    print("Computer has won\n")
-                    self.win=False
-                    loser=defendPiece
-                    winner=attackPiece
+        #if flag is attacked
+        else:
+            if attackPiece.getAlliance() == 0:
+                print("Player has won\n")
+                self.win = True
+            else:
+                print("Computer has won\n")
+                self.win = False
+            winner = attackPiece
+            loser = defendPiece
+            return winner,loser
         ##if Flag is captured
         #elif piece1.toString() == "Flag":
         #    print(piece2.toString() + " has captured the Flag\n")   #attacking piece will not be Flag (flag cannot move)
-        elif defendPiece.toString() == "Flag":
-            print(attackPiece.toString() + " has captured the Flag\n")
+        #elif defendPiece.toString() == "Flag":
+        #    print(attackPiece.toString() + " has captured the Flag\n")
 
+        #add piece's potrait back to selection pane
         if loser.getAlliance() == 0  and self.pieceData[loser.toString()][0] == 0:
             k = 0
             for item in self.pieceData:
@@ -818,6 +813,8 @@ class Board:
                 attackPiece = piece
                 defendPiece = self.tiles[i][j].getPiece()
                 winner, loser = self.referee(attackPiece, defendPiece)  #winner = None, loser = attackPiece if draw
+                if self.win:
+                    return
                 self.tiles[i][j].setPiece(winner)
             else:
                 self.tiles[i][j].setPiece(piece)

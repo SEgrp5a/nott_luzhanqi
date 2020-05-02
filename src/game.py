@@ -28,7 +28,7 @@ gameStates = {"MainMenu": MainMenu(displayWidth,displayHeight,gsm),
               "Instruction": Instruction(displayWidth,displayHeight,gsm),
               "InGame": None,
               "Pause": Pause(displayWidth,displayHeight,gsm),
-              "GameOver": GameOver(displayWidth,displayHeight,gsm),
+              "GameOver": None,
               "Exit": None}
 
 #BGM
@@ -36,13 +36,15 @@ BGM = {"MainMenu": '.\\bin\\GOT.mp3',
        "Instruction": '.\\bin\\Halo.mp3',
        "InGame": '.\\bin\\war.mp3',
        "Pause": '.\\bin\\GOT.mp3',
-       "GameOver": '.\\bin\\GOT.mp3'}
+       "GameOver": '.\\bin\\GOT.mp3',
+       "Exit": None}
 
 def update(event, gsm, gameStates):
     if gsm.currentGameState == "InGame" and gameStates[gsm.currentGameState] == None:
         gameStates[gsm.currentGameState] = InGame(100,55,12,5,gsm)
-    gameStates[gsm.currentGameState].update(event)
-
+    result = gameStates[gsm.currentGameState].update(event)
+    if gsm.currentGameState == "GameOver" and gameStates[gsm.currentGameState] == None:
+        gameStates[gsm.currentGameState] = GameOver(displayWidth,displayHeight,gameStates["InGame"].win,gsm)
 
 def draw(GAMEDISPLAY, gsm, gameStates):
     if gameStates[gsm.currentGameState] == None:
@@ -63,7 +65,10 @@ while run:
         if gameStates["InGame"] and gsm.currentGameState == "MainMenu":
             dump = gameStates["InGame"]
             gameStates["InGame"] = None
+            dump2 = gameStates["GameOver"]
+            gameStates["GameOver"] = None
             del dump
+            del dump2
 
         update(event, gsm, gameStates)
         draw(GAMEDISPLAY, gsm, gameStates)

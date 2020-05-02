@@ -195,6 +195,7 @@ class InGame(GameState):
     def __init__(self, width, height, numRow, numCol, gsm):
         super().__init__(gsm)
         self.board = Board(width, height, numRow, numCol)
+        self.win = None
 
     def draw(self,surface):
         surface.fill(self.gray)
@@ -203,6 +204,10 @@ class InGame(GameState):
     def update(self, event):
         #handle event on board
         self.board.handleEvent(event)
+        #check if game is over
+        if self.board.win != None:
+            self.win = self.board.win
+            self.gsm.setState("GameOver")
         #handle keyboard event
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
@@ -272,7 +277,7 @@ class Pause(GameState):
         self.menu_button.update(self.menu_button.getColor(),outline_menu,outlineColor_menu)
 
 class GameOver(GameState):
-    def __init__(self, displayWidth, displayHeight, gsm):
+    def __init__(self, displayWidth, displayHeight, win, gsm):
         super().__init__(gsm)
         self.displayWidth = displayWidth
         #Image
@@ -281,20 +286,17 @@ class GameOver(GameState):
         #Button
         self.menu_button = Tile(displayWidth/2 - 100, displayHeight/2 + 10, 200, 80, color = self.red, text = 'MENU', textColor = self.black)
         self.exit_button = Tile(displayWidth/2 - 100, displayHeight/2 + 110, 200, 80, color = self.red, text = 'EXIT', textColor = self.black)
-        #Result
-        self.win = None
-        self.result = None
+        #result
+        if win:
+            self.result = "CONGRADULATIONS YOU WON"
+        else:
+            self.result = "YOU LOST THE WAR"
 
-    def draw(self, surface):
+    def draw(self, surface, win = None):
         #Show Background
         surface.blit(self.gameOverImage,(0,0))
         #Write Title
         self.write_text(self.displayWidth/2, 50, "GAME OVER", self.red, 60, surface)
-        #Show result
-        if self.win:
-            self.result = "CONGRADULATIONS YOU WON"
-        else:
-            self.result = "YOU LOST THE WAR"
         self.write_text(self.displayWidth/2, 150, self.result, self.red, 60, surface)
         #Draw Button
         self.menu_button.draw(surface)

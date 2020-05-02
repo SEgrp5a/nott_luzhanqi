@@ -110,8 +110,8 @@ class AI():
                 self.prediction[playerPiece].remove('Landmine')
             if 'Flag' in self.prediction[playerPiece]:
                 self.prediction[playerPiece].remove('Flag')
-            #playerPiece is engineer if can move along corner of RW
-            if ori[0] != dest[0] and ori[1] != dest[1]:
+            #playerPiece is engineer if can move along corner of RW 
+            if ori[0] != dest[0] and ori[1] != dest[1] and (self.brd.layout[ori[0]][ori[1]] != 'CP' and self.brd.layout[dest[0]][dest[1]] != 'CP'):
                 self.prediction[playerPiece] = ['Engineer']
 
         self.lostPiece = None
@@ -262,8 +262,8 @@ class AI():
         return bestMove
 
     def placePieces(self):
-        pieceLayout = [["Commander","Landmine","Major","Flag","Captain"],
-                       ["Landmine","Landmine","Engineer","Marshal","Engineer"],
+        pieceLayout = [["Commander","Landmine","Major","Flag","Landmine"],
+                       ["Captain","Landmine","Engineer","Marshal","Engineer"],
                        ["Grenade",None,"Captain",None,"Colonel"],
                        ["Engineer","Lieutenant",None,"Commander","Lieutenant"],
                        ["Grenade",None,"General",None,"Commander"],
