@@ -783,11 +783,6 @@ class Board:
             winner = attackPiece
             loser = defendPiece
             return winner,loser
-        ##if Flag is captured
-        #elif piece1.toString() == "Flag":
-        #    print(piece2.toString() + " has captured the Flag\n")   #attacking piece will not be Flag (flag cannot move)
-        #elif defendPiece.toString() == "Flag":
-        #    print(attackPiece.toString() + " has captured the Flag\n")
 
         #add piece's potrait back to selection pane
         if loser.getAlliance() == 0  and self.pieceData[loser.toString()][0] == 0:
@@ -817,8 +812,9 @@ class Board:
                     return
                 self.tiles[i][j].setPiece(winner)
             else:
+                if action == "move" and piece.getAlliance() == 1:
+                    self.log.append("The enemy moved")
                 self.tiles[i][j].setPiece(piece)
-                self.log.append("The enemy moved")
             self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
             self.currentPiece = None
             self.pieceRow = None

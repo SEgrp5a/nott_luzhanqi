@@ -17,19 +17,6 @@ class AI():
                 "Commander": [8],
                 "Engineer": [9]}
 
-    pieceData = {"Flag": [1],
-                "Grenade": [2],
-                "Landmine": [3],
-                "Marshal": [1],
-                "General": [1],
-                "Lieutenant": [2],
-                "Brigadier": [2],
-                "Colonel": [2],
-                "Major": [2],
-                "Captain": [3],
-                "Commander": [3],
-                "Engineer": [3]}
-
     def __init__(self, board):
         self.brd = board    #get Board reference
         self.currentPiece = None
@@ -47,7 +34,7 @@ class AI():
                               [3,1,2,1,3],
                               [3,2,1,2,3],
                               [4,5,4,5,4],
-                              [5,6,5,6,5]] #subject to change
+                              [5,1,5,1,5]] #subject to change
         self.criticalPos = [(0,0),(0,2),(0,4),(1,0),(1,1),(1,2),(1,3),(1,4)] #location with danger of game over
 
     def getPrediction(self):
@@ -266,16 +253,98 @@ class AI():
         return bestMove
 
     def placePieces(self):
-        pieceLayout = [["Commander","Landmine","Major","Flag","Landmine"],
-                       ["Captain","Landmine","Engineer","Marshal","Engineer"],
-                       ["Grenade",None,"Captain",None,"Colonel"],
-                       ["Engineer","Lieutenant",None,"Commander","Lieutenant"],
-                       ["Grenade",None,"General",None,"Commander"],
-                       ["Brigadier","Colonel","Captain","Major","Brigadier"]]
-        for i in range(int(self.brd.numRow/2)):
-            for j in range(self.brd.numCol):
-                if pieceLayout[i][j]:
-                    self.brd.tiles[i][j].setPiece(self.brd.spawnPiece(1, pieceLayout[i][j], self.brd.tiles[i][j].getPos()))
+        pieceData = {"Flag": [1],
+                     "Grenade": [2],
+                     "Landmine": [3],
+                     "Marshal": [1],
+                     "General": [1],
+                     "Lieutenant": [2],
+                     "Brigadier": [2],
+                     "Colonel": [2],
+                     "Major": [2],
+                     "Captain": [3],
+                     "Commander": [3],
+                     "Engineer": [3]}
+        pieceLayout = [None for _ in range(30)]
+
+        #randomly assign Flag to one of the HQ
+        if rng.rand() < 0.5:
+            pieceLayout[1] = "Flag"
+        else:
+            pieceLayout[3] = "Flag"
+
+        #heuristic of landmine change according to position of Flag
+        heuristic_landmine = [3 for _ in range(10)]
+        if pieceLayout[1] == "Flag":
+            heuristic_landmine[1] = -1
+            heuristic_landmine[3] = 6
+            heuristic_landmine[0] = 5
+            heuristic_landmine[2] = 5
+        elif pieceLayout[3] == "Flag":
+            heuristic_landmine[3] = -1
+            heuristic_landmine[1] = 6
+            heuristic_landmine[2] = 5
+            heuristic_landmine[4] = 5
+        #assign landmine
+        for i in range(pieceData["Landmine"][0]):
+            best = (0,None) #(value,index)
+            for j in range(len(heuristic_landmine)):
+                heuristicValue = heuristic_landmine[j] * ((rng.rand() * 0.8) + 0.6)
+                if heuristicValue > best[0]:
+                    best = (heuristicValue, j)
+            pieceLayout[best[1]] = "Landmine"
+            heuristic_landmine[best[1]] = -1
+
+        #heurictic of grenade
+        heuristic_grenade = [3 for _ in range(25)]
+        for i in range(5):
+            heuristic_grenade[i] = 2
+        heuristic_grenade[7] = 5
+        for j in range(len(heuristic_grenade)):
+            if pieceLayout[j] != None or j == 11 or j == 13 or j == 17 or j == 21 or j == 23:
+               heuristic_grenade[j] = -1
+        #assign grenade
+        for i in range(pieceData["Grenade"][0]):
+            best = (0,None)
+            for j in range(len(heuristic_grenade)):
+                heuristicValue = heuristic_grenade[j] * ((rng.rand() * 0.8) + 0.6)
+                if heuristicValue > best[0]:
+                    best = (heuristicValue, j)
+            pieceLayout[best[1]] = "Grenade"
+            heuristic_grenade[best[1]] = -1
+
+        #heuristic for other pieces
+        heuristic_pieces = [3 for _ in range(30)]
+        for i in range(5):
+            heuristic_grenade[i] = 2
+        for j in range(5,30):
+            if j == 5 or j == 9 or j == 12 or j == 16 or j == 18 or j == 22 or j == 25 or j == 29:
+                heuristic_pieces[j] = 4
+            elif j == 15 or j == 19:
+                heuristic_pieces[j] = 5
+            elif j == 7 or j == 27:
+                heuristic_pieces[j] = 6
+        for k in range(len(heuristic_pieces)):
+            if pieceLayout[k] != None or k == 11 or k == 13 or k == 17 or k == 21 or k == 23:
+               heuristic_pieces[k] = -1
+        #assign pieces
+        for piece in pieceData:
+            if piece == "Flag" or piece == "Landmine" or piece == "Grenade":
+                continue #already assigned
+            for i in range(pieceData[piece][0]):
+                best = (0,None)
+                for j in range(len(heuristic_pieces)):
+                    heuristicValue = heuristic_pieces[j] * ((rng.rand() * 0.8) + 0.6)
+                    if heuristicValue > best[0]:
+                        best = (heuristicValue, j)
+                pieceLayout[best[1]] = piece
+                heuristic_pieces[best[1]] = -1
+
+        for x in range(len(pieceLayout)):
+            i = int(x / 5)
+            j = int(x % 5)
+            if pieceLayout[x]:
+                self.brd.tiles[i][j].setPiece(self.brd.spawnPiece(1, pieceLayout[x], self.brd.tiles[i][j].getPos()))
 
     #take action
     def makeMove(self):
