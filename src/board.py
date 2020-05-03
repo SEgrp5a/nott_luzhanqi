@@ -56,12 +56,14 @@ class Board:
         #AI condition
         self.aiMoved = False
         self.aiLastMove = [None, None] #[start, dest]
-        self.min = False # false if calculating max, true if calculating min
         #sound effects
         self.friendFire = '.\\bin\\Friendly Fire.wav'
         self.explosion = '.\\bin\\explosion.wav'
         self.shoot = '.\\bin\\fire.wav'
         self.ticking = '.\\bin\\TickingBomb.wav'
+        self.win = None
+        #combat log
+        self.log = [None, None, None]
 
     def getGamePhase():
         return self.gamePhase
@@ -101,15 +103,17 @@ class Board:
         return layout
 
     def write_text(self,x,y,text,textcolor,fontsize,surface):
-        titleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", fontsize)
-        titleTextSurfaceObj = titleTextObj.render(text, True, textcolor)
-        titleTextRectObj = titleTextSurfaceObj.get_rect()
-        titleTextRectObj.center = (x, y)
-        surface.blit(titleTextSurfaceObj, titleTextRectObj)
+        if text:
+            titleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", fontsize)
+            titleTextSurfaceObj = titleTextObj.render(text, True, textcolor)
+            titleTextRectObj = titleTextSurfaceObj.get_rect()
+            titleTextRectObj.center = (x, y)
+            surface.blit(titleTextSurfaceObj, titleTextRectObj)
 
     def play(self,sound):
         sounds = pygame.mixer.Sound(sound)
         pygame.mixer.Sound.play(sounds)
+        pygame.mixer_music.set_volume(0.5)
 
     def generateTiles(self):
         tiles = []
@@ -257,8 +261,15 @@ class Board:
     def draw(self,surface):
         #Draw board
         surface.blit(self.brdImg,(0,0))
-        self.write_text(1200-545,716-55,'[SPACE KEY = PAUSE]',self.black,23,surface)
-        self.write_text(1200-545,716-25,'[ESC KEY = MAIN MENU]',self.black,23,surface)
+        #Show Controls
+        self.write_text(1200-610, 30, '[ESC = PAUSE]', self.black, 23, surface)
+        #Show referee log:
+        if self.gamePhase == 2:
+            self.write_text(1200-530, 716 - 50, 'REFEREE LOG:', self.green, 23, surface)
+        #Show combat log
+        self.write_text(1200-200, 716-75, self.log[-3], self.white, 20, surface)
+        self.write_text(1200-200, 716-50, self.log[-2], self.white, 20, surface)
+        self.write_text(1200-200, 716-25, self.log[-1], self.white, 20, surface)
         #Draw tiles
         for j in range(self.numCol):
             for i in range(self.numRow):
@@ -266,8 +277,12 @@ class Board:
         #Only draw Selection Pane on setup phase
         #Draw Selection Pane
         #Draw Selection Pane Title
-        titleTextObj = pygame.font.Font("bin\OpenSans.ttf", 38)
-        titleTextSurfaceObj = titleTextObj.render("PIECES", True, self.white)
+        titleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", 38)
+        if self.gamePhase == 1:
+            title = "PIECES"
+        else:
+            title = "DEAD PIECES"
+        titleTextSurfaceObj = titleTextObj.render(title, True, self.white)
         titleTextRectObj = titleTextSurfaceObj.get_rect()
         titleTextRectObj.center = (860, 75)
         surface.blit(titleTextSurfaceObj, titleTextRectObj)
@@ -277,7 +292,7 @@ class Board:
             #Draw piece image
             self.selectionPaneTiles[k].draw(surface)
             #Draw Selection Pane piece's name
-            textObj = pygame.font.Font("bin\OpenSans.ttf", 18)
+            textObj = pygame.font.Font(".\\bin\\Becker.ttf", 18)
             textSurfaceObj = textObj.render(item, True, self.white)
             textRectObj = textSurfaceObj.get_rect()
             textRectObj.center = tuple(x + y for x, y in zip(self.selectionPaneTiles[k].getPos(), (25,-25)))
@@ -318,6 +333,23 @@ class Board:
             #grenade cannot be placed at 1st row
             return False
         return True
+    
+    #check for game over
+    def checkGameOver(self,alliance):
+        currentState={}
+        for i in range(self.numRow):
+            for j in range(self.numCol): # check entire board for pieces of the alliance
+                if self.tiles[i][j].getPiece() != None and self.tiles[i][j].getPiece().getAlliance() == alliance: # get the alliance's piece
+                    currentState[self.tiles[i][j].getPiece()] = [(i,j),None]
+
+        for piece in currentState:
+            currentRow, currentCol = currentState[piece][0]
+            for i in range(self.numRow):
+                for j in range(self.numCol): # check entire board for alliance's piece movement
+                    action = self.checkAvailableMovement(i,j,piece,currentRow,currentCol,False) #not checking for engineer to save compute time
+                    if action != None and action != "no move":
+                        return False #not game over
+        return True
 
     #check if movement is vailable
     def checkAvailableMovement(self, row, col, piece, pieceRow, pieceCol, checkEngineer = True):
@@ -335,10 +367,10 @@ class Board:
         if piece.toString() == "Landmine" or piece.toString() == "Flag":
             return None    #landmine and flag cannot be move
         #if no move
-        if og == (row, col):
+        elif og == (row, col):
             return "no move"
         #if engineer on railway
-        if checkEngineer and self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
+        elif checkEngineer and self.layout[pieceRow][pieceCol] == "RW" and self.layout[row][col] == "RW" and piece.toString() == "Engineer":
             railwayGraph = {}   #will contain adjacent nodes of the pos ({0 : [1, 10], ...})
             index = 0   #label the nodes (key for railwayGraph)
             railwayList = []    #will contain all railway counting up to down, left to right ([(row, col), ...]) (railwayList[vertex] will have result for the location of railway)
@@ -446,7 +478,7 @@ class Board:
                         action = None
                         break
         #if currently on camp
-        if self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+        elif self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
@@ -454,13 +486,13 @@ class Board:
             elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
                 action = None
         #if moving to camp
-        if self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+        elif self.layout[row][col] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             else:
                 action = None
         #horizontal movement
-        if lf == (row, col) or rg == (row, col):
+        elif lf == (row, col) or rg == (row, col):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
@@ -468,7 +500,7 @@ class Board:
             elif self.tiles[row][col].getPiece().getAlliance() == piece.getAlliance():
                 action = None
         #vertical movement
-        if up == (row, col) or dw == (row, col):
+        elif up == (row, col) or dw == (row, col):
             if up == (5, 1) or up == (5, 3) or dw == (6, 1) or dw == (6, 3):    #check if not blocked by mountain range
                 action == None
             elif not self.tiles[row][col].getPiece():
@@ -541,8 +573,14 @@ class Board:
                                 self.pieceCol = j
                                 self.tiles[i][j].setPiece(None)
                         else:
+                            if self.checkGameOver(0): #check my available movement before taking an action
+                                self.win = False
+                                return
                             if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
                                 #whenever the player's turn is over.. then the AI will make move
+                                if self.checkGameOver(1):
+                                    self.win = True
+                                    return
                                 start,dest = self.ai.makeMove()
                                 self.aiLastMove = [start, dest]
                                 self.aiMoved = True
@@ -679,15 +717,12 @@ class Board:
     def referee(self, attackPiece, defendPiece):
         winner = None   #winner = None when draw
         loser = None    #loser = player piece when draw
-        #checking alliances
-        if attackPiece.getAlliance() == defendPiece.getAlliance():
-            print('You can not attack your own piece!\n')
-        elif attackPiece.toString() != "Flag" and defendPiece.toString() != "Flag":
+        if attackPiece.toString() != "Flag" and defendPiece.toString() != "Flag":
             #if engineer steps on a landmine
             if attackPiece.toString() == "Landmine" and defendPiece.toString() == "Engineer" or attackPiece.toString() == "Engineer" and defendPiece.toString() == "Landmine":
-                print("Engineer has disarmed the landmine!\n")
-                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0: #only when player makes a move there will be a sound [disarming landmine]
-                    self.play(self.ticking)
+                if attackPiece.getAlliance() == 0 : #when player disarm a landmine
+                    self.play(self.ticking) #play sound effect
+                    self.log.append("Your engineer has disarmed a landmine!")
                 if attackPiece.toString() == "Engineer":
                     winner = attackPiece
                     loser = defendPiece
@@ -696,8 +731,12 @@ class Board:
                     loser = attackPiece
             #if Grenade or Landmine attacks any piece
             elif attackPiece.toString() == "Grenade" or attackPiece.toString() == "Landmine" or defendPiece.toString() == "Grenade" or defendPiece.toString() == "Landmine":
-                print("Both pieces have been taken")
-                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                if attackPiece.getAlliance() != 0:
+                    self.log.append("Your " + defendPiece.toString() + " and enemy were taken")
+                else:
+                    self.play(self.shoot)
+                    self.log.append("Your " + attackPiece.toString() + " and enemy were taken")
+                if attackPiece.getAlliance() == 0 and (attackPiece.toString() == "Landmine" or attackPiece.toString() == "Grenade"):
                     self.play(self.explosion)
                 if attackPiece.getAlliance() == 0:
                     loser = attackPiece
@@ -705,34 +744,50 @@ class Board:
                 else:
                     loser = defendPiece
                     self.ai.lostPiece = attackPiece
+            #if attacking piece won
             elif attackPiece.getRank() < defendPiece.getRank():
-                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                if attackPiece.getAlliance() == 0:
                     self.play(self.shoot)
-                print(attackPiece.toString() + " has taken " + defendPiece.toString() +"!\n")
+                    self.log.append("Your " + attackPiece.toString() + " has taken an enemy piece")
+                else:
+                    self.log.append("An enemy piece has taken your " + defendPiece.toString())
                 winner = attackPiece
                 loser = defendPiece
+            #if attacking piece lost
             elif defendPiece.getRank() < attackPiece.getRank():
-                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                if attackPiece.getAlliance() == 0 :
                     self.play(self.shoot)
-                print(defendPiece.toString() + " has taken " + attackPiece.toString() + "!\n")
+                    self.log.append("An enemy piece has taken your " + attackPiece.toString())
+                else:
+                    self.log.append("Your " + defendPiece.toString() + " has taken an enemy piece")
                 winner = defendPiece
                 loser = attackPiece
+            #if draw
             elif defendPiece.getRank() == attackPiece.getRank():
-                if attackPiece.getAlliance() == 0 or defendPiece.getAlliance() == 0:
+                if attackPiece.getAlliance() == 0 :
                     self.play(self.shoot)
-                print(defendPiece.toString() + " and " + attackPiece.toString() + " have both been taken!\n")
+                    self.log.append("Your " + attackPiece.toString() + " and an enemy is taken")
+                else:
+                    self.log.append("Your " + defendPiece.toString() + " and an enemy is taken")
                 if attackPiece.getAlliance() == 0:
                     loser = attackPiece
                     self.ai.lostPiece = defendPiece
                 else:
                     loser = defendPiece
                     self.ai.lostPiece = attackPiece
-        ##if Flag is captured
-        #elif piece1.toString() == "Flag":
-        #    print(piece2.toString() + " has captured the Flag\n")   #attacking piece will not be Flag (flag cannot move)
-        elif defendPiece.toString() == "Flag":
-            print(attackPiece.toString() + " has captured the Flag\n")
+        #if flag is attacked
+        else:
+            if attackPiece.getAlliance() == 0:
+                print("Player has won\n")
+                self.win = True
+            else:
+                print("Computer has won\n")
+                self.win = False
+            winner = attackPiece
+            loser = defendPiece
+            return winner,loser
 
+        #add piece's potrait back to selection pane
         if loser.getAlliance() == 0  and self.pieceData[loser.toString()][0] == 0:
             k = 0
             for item in self.pieceData:
@@ -756,8 +811,12 @@ class Board:
                 attackPiece = piece
                 defendPiece = self.tiles[i][j].getPiece()
                 winner, loser = self.referee(attackPiece, defendPiece)  #winner = None, loser = attackPiece if draw
+                if self.win:
+                    return
                 self.tiles[i][j].setPiece(winner)
             else:
+                if action == "move" and piece.getAlliance() == 1:
+                    self.log.append("The enemy moved")
                 self.tiles[i][j].setPiece(piece)
             self.ai.updatePrediction(winner, loser, self.currentPiece, (self.pieceRow, self.pieceCol), dest)
             self.currentPiece = None

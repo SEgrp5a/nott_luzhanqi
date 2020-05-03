@@ -138,7 +138,7 @@ class SelectionPaneTile(Tile):
     def __init__(self, x, y, width, height, color=(...), transparent=False, outline=False, outlineColor=(...), text='', textColor=(...), nPieces=0):
         self.pieces = []
         self.nPieces = nPieces
-        return super().__init__(x, y, width, height, color=color, transparent=transparent, outline=outline, outlineColor=outlineColor, text=text, textColor=textColor)
+        super().__init__(x, y, width, height, color=color, transparent=transparent, outline=outline, outlineColor=outlineColor, text=text, textColor=textColor)
 
     def getPiece(self):
         if self.pieces == []:
