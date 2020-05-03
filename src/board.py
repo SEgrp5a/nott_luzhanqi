@@ -578,6 +578,7 @@ class Board:
                                 return
                             if self.takeAction(self.currentPiece, self.checkAvailableMovement(i,j,self.currentPiece,self.pieceRow,self.pieceCol), (i,j)):
                                 #whenever the player's turn is over.. then the AI will make move
+                                pygame.time.wait(1500)
                                 if self.checkGameOver(1):
                                     self.win = True
                                     return
@@ -783,6 +784,7 @@ class Board:
             else:
                 print("Computer has won\n")
                 self.win = False
+
             winner = attackPiece
             loser = defendPiece
             return winner,loser

@@ -324,7 +324,6 @@ class AI():
 
     #take action
     def makeMove(self):
-        print('it is now AI turn')
         # deciding which piece to move and to where
         payoff, self.currentPiece, orgin, dest, action = self.chooseMove() # returns piece to move, destination of move, current location of piece
 
