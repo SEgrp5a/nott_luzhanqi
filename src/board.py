@@ -113,7 +113,7 @@ class Board:
     def play(self,sound):
         sounds = pygame.mixer.Sound(sound)
         pygame.mixer.Sound.play(sounds)
-        pygame.mixer_music.set_volume(0.5)
+        pygame.mixer_music.set_volume(0.25)
 
     def generateTiles(self):
         tiles = []
@@ -178,14 +178,14 @@ class Board:
         return spawn
 
     def checkDone(self):
-        complete=False
+        complete = False
         if self.currentPiece == None:
             for k in self.pieceData:
                 if self.pieceData[k][0] == 0:
                     complete = True
-                #else:
-                #    # can do a pop-up to let user know not all pieces are set
-                #    break
+                else:
+                    complete = False
+                    break
             if complete == True:
                 self.ai = AI(self)  #initialize AI
                 self.ai.placePieces()
@@ -262,7 +262,7 @@ class Board:
         #Draw board
         surface.blit(self.brdImg,(0,0))
         #Show Controls
-        self.write_text(1200-610, 30, '[ESC = PAUSE]', self.black, 23, surface)
+        self.write_text(1200-610, 30, '[ESC = PAUSE]', self.white, 23, surface)
         #Show referee log:
         if self.gamePhase == 2:
             self.write_text(1200-530, 716 - 50, 'REFEREE LOG:', self.green, 23, surface)

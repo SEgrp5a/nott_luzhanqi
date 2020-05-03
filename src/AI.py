@@ -105,12 +105,6 @@ class AI():
         self.lostPiece = None
         self.currentPiece = None
 
-        #debug
-        for item in self.prediction:
-            print(item,end=' : ')
-            print(self.prediction[item])
-        print(self.playerDeadPieces)
-
     def calcAttack(self,piece,myRank,enemies): # receives current piece,current piece rank, list of pieces the opponent can be
         willLoseTo = 0
         worth = 0 # for if my piece is grenade
@@ -173,15 +167,9 @@ class AI():
         for piece in currentState:
             currentState[piece][1] = self.generateMoves(piece,currentState[piece][0],True)
 
-        #debug
-        debugMatrix = {}
-
         #for all possibleMoves
         bestMove = (0.0,None,None,None,None) #(Payoff, referenceToPiece, orgin, dest, action)
         for piece in currentState:
-            #debug
-            default = [[None for _ in range(5)] for _ in range(12)]
-            default[currentState[piece][0][0]][currentState[piece][0][1]] = 0.0
             for move in currentState[piece][1]:
                 #if move is bad
                 if move[1] < 0:
@@ -234,22 +222,10 @@ class AI():
                 if bestMove[0] < payoff:
                     bestMove = (payoff, piece, currentState[piece][0], move[0], move[2])
                 
-                #debug
-                default[move[0][0]][move[0][1]] = payoff
-
                 #revert to original state
                 self.brd.tiles[currentState[piece][0][0]][currentState[piece][0][1]].setPiece(piece)
                 self.brd.tiles[move[0][0]][move[0][1]].setPiece(ogPiece)
-            
-            #debug
-            debugMatrix[piece] = default
-
-        #debug
-        for x in debugMatrix:
-            print(x)
-            for y in debugMatrix[x]:
-                print(y)
-
+         
         return bestMove
 
     def placePieces(self):
@@ -334,7 +310,7 @@ class AI():
             for i in range(pieceData[piece][0]):
                 best = (0,None)
                 for j in range(len(heuristic_pieces)):
-                    heuristicValue = heuristic_pieces[j] * ((rng.rand() * 0.8) + 0.6)
+                    heuristicValue = heuristic_pieces[j] * ((rng.rand() * 1) + 0.5)
                     if heuristicValue > best[0]:
                         best = (heuristicValue, j)
                 pieceLayout[best[1]] = piece
