@@ -3,7 +3,8 @@ import pygame.mixer_music as music_player
 class JukeBox():
     def __init__(self):
         self.now_playing = None
-
+    
+    #play music
     def play(self, music):
         if not music:
             return
@@ -12,7 +13,8 @@ class JukeBox():
             music_player.play(-1)
             #music_player.set_volume(0.5)
             self.now_playing = music
-
+    
+    #stop music
     def stop_music():
         music_player.stop()
         self.now_playing = None

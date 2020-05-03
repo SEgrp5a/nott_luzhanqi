@@ -39,6 +39,7 @@ BGM = {"MainMenu": '.\\bin\\GOT.mp3',
        "GameOver": '.\\bin\\GOT.mp3',
        "Exit": None}
 
+#update board and game states
 def update(event, gsm, gameStates):
     if gsm.currentGameState == "InGame" and gameStates[gsm.currentGameState] == None:
         gameStates[gsm.currentGameState] = InGame(100,55,12,5,gsm)
@@ -46,11 +47,13 @@ def update(event, gsm, gameStates):
     if gsm.currentGameState == "GameOver" and gameStates[gsm.currentGameState] == None:
         gameStates[gsm.currentGameState] = GameOver(displayWidth,displayHeight,gameStates["InGame"].win,gsm)
 
+#draw the component of the game states
 def draw(GAMEDISPLAY, gsm, gameStates):
     if gameStates[gsm.currentGameState] == None:
         return
     gameStates[gsm.currentGameState].draw(GAMEDISPLAY)
 
+#Main game loop
 run = True
 gsm.setState("MainMenu")
 while run:
@@ -62,6 +65,7 @@ while run:
         if event.type == pygame.QUIT:
             run = False
 
+        #dumping unecessary states to save memory
         if gameStates["InGame"] and gsm.currentGameState == "MainMenu":
             dump = gameStates["InGame"]
             gameStates["InGame"] = None

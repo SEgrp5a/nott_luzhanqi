@@ -36,7 +36,8 @@ class AI():
                               [4,5,4,5,4],
                               [5,1,5,1,5]] #subject to change
         self.criticalPos = [(0,0),(0,2),(0,4),(1,0),(1,1),(1,2),(1,3),(1,4)] #location with danger of game over
-
+    
+    #generate prediction matrix
     def getPrediction(self):
         prediction = {}
         for i in range(int(self.brd.numRow/2),self.brd.numRow):
@@ -58,6 +59,7 @@ class AI():
                         prediction[playerPiece].append('Grenade')
         return prediction
 
+    #update prediction matrix for each move
     def updatePrediction(self, winner, loser, playerPiece, ori, dest):
         #if round lost
         if winner and winner.getAlliance() == 0:
@@ -104,7 +106,8 @@ class AI():
 
         self.lostPiece = None
         self.currentPiece = None
-
+    
+    #calculate payoff if piece is attacking
     def calcAttack(self,piece,myRank,enemies): # receives current piece,current piece rank, list of pieces the opponent can be
         willLoseTo = 0
         worth = 0 # for if my piece is grenade
@@ -156,6 +159,7 @@ class AI():
 
         return moves
 
+    #choose the best move in the current state
     def chooseMove(self):
         currentState = {}  #store the payoff of each move {referenceToPiece: [orgin, [(dest, payOff, action), ...]]}
         for i in range(self.brd.numRow):
@@ -228,6 +232,7 @@ class AI():
          
         return bestMove
 
+    #assign pieces to tiles
     def placePieces(self):
         pieceData = {"Flag": [1],
                      "Grenade": [2],

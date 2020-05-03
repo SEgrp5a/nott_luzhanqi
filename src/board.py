@@ -65,9 +65,7 @@ class Board:
         #combat log
         self.log = [None, None, None]
 
-    def getGamePhase():
-        return self.gamePhase
-
+    #assign attributes to each tiles
     def generateLayout(self):
         #Set all as Soldier Station
         layout = [["SS" for i in range(self.numCol)] for j in range(self.numRow)]
@@ -102,6 +100,7 @@ class Board:
 
         return layout
 
+    #write text
     def write_text(self,x,y,text,textcolor,fontsize,surface):
         if text:
             titleTextObj = pygame.font.Font(".\\bin\\Becker.ttf", fontsize)
@@ -109,12 +108,14 @@ class Board:
             titleTextRectObj = titleTextSurfaceObj.get_rect()
             titleTextRectObj.center = (x, y)
             surface.blit(titleTextSurfaceObj, titleTextRectObj)
-
+    
+    #play sound effect
     def play(self,sound):
         sounds = pygame.mixer.Sound(sound)
         pygame.mixer.Sound.play(sounds)
         pygame.mixer_music.set_volume(0.25)
-
+    
+    #create tiles for board
     def generateTiles(self):
         tiles = []
         for j in range(self.numRow):
@@ -148,6 +149,7 @@ class Board:
 
         return selectionPaneTiles
 
+    #spawn an object of the piece at the position
     def spawnPiece(self, alliance, piece, pos):
         spawn = None
         if piece == "Flag":
@@ -177,6 +179,7 @@ class Board:
 
         return spawn
 
+    #check if the player setup is complete
     def checkDone(self):
         complete = False
         if self.currentPiece == None:
@@ -190,72 +193,6 @@ class Board:
                 self.ai = AI(self)  #initialize AI
                 self.ai.placePieces()
                 self.gamePhase = 2
-
-    def autoSetup1(self):
-        peicePosition = ["Commander","Commander","Landmine","Flag","Landmine",
-                        "Commander","Engineer","Captain","Landmine","Captain",
-                        "Major",None,"Major",None,"Captain",
-                        "Brigadier","Colonel",None,"Brigadier","Marshal",
-                        "Lieutenant",None,"Grenade",None,"Grenade",
-                        "General","Engineer","Colonel","Engineer","Lieutenant"]
-        y = 11
-        x = 0
-        for piece in peicePosition:
-            if x < self.numCol:
-                self.tiles[y][x].setPiece(self.spawnPiece(0,piece,self.tiles[y][x].getPos))
-                x = x + 1
-            if x == self.numCol:
-                x = 0
-                y = y - 1
-        for k in range(len(self.selectionPaneTiles)):
-            self.selectionPaneTiles[k].removeAll()
-        for item in self.pieceData:
-            self.pieceData[item] = [0]
-
-    def autoSetup2(self):
-        peicePosition = ["Captain","Flag","Colonel","Commander","Captain",
-                        "Landmine","Landmine","Landmine","Major","Commander",
-                        "Captain",None,"Commander",None,"Colonel",
-                        "Engineer","Brigadier",None,"Brigadier","Engineer",
-                        "Grenade",None,"Grenade",None,"Major",
-                        "Lieutenant","Marshal","General","Engineer","Lieutenant"]
-        y = 11
-        x = 0
-        for piece in peicePosition:
-            if x < self.numCol:
-                self.tiles[y][x].setPiece(self.spawnPiece(0,piece,self.tiles[y][x].getPos))
-                x = x + 1
-            if x == self.numCol:
-                x = 0
-                y = y - 1
-        for k in range(len(self.selectionPaneTiles)):
-            self.selectionPaneTiles[k].removeAll()
-        for item in self.pieceData:
-            self.pieceData[item] = [0]
-
-    def undoSetup(self):
-        y = 11
-        x = 0
-        for i in range(30):
-            if x < self.numCol:
-                self.tiles[y][x].setPiece(None)
-                x = x + 1
-            if x == self.numCol:
-                x = 0
-                y = y - 1
-        self.pieceData = {"Flag": [1],
-                          "Grenade": [2],
-                          "Landmine": [3],
-                          "Marshal": [1],
-                          "General": [1],
-                          "Lieutenant": [2],
-                          "Brigadier": [2],
-                          "Colonel": [2],
-                          "Major": [2],
-                          "Captain": [3],
-                          "Commander": [3],
-                          "Engineer": [3]}
-        self.selectionPaneTiles = self.generateSelectionPane()
 
     #Draw the entire interface
     def draw(self,surface):
@@ -718,6 +655,7 @@ class Board:
     def referee(self, attackPiece, defendPiece):
         winner = None   #winner = None when draw
         loser = None    #loser = player piece when draw
+        #if none of the pieces are flag
         if attackPiece.toString() != "Flag" and defendPiece.toString() != "Flag":
             #if engineer steps on a landmine
             if attackPiece.toString() == "Landmine" and defendPiece.toString() == "Engineer" or attackPiece.toString() == "Engineer" and defendPiece.toString() == "Landmine":
@@ -830,3 +768,69 @@ class Board:
                 return True
         else:
             return False
+    
+    def autoSetup1(self):
+        peicePosition = ["Commander","Commander","Landmine","Flag","Landmine",
+                        "Commander","Engineer","Captain","Landmine","Captain",
+                        "Major",None,"Major",None,"Captain",
+                        "Brigadier","Colonel",None,"Brigadier","Marshal",
+                        "Lieutenant",None,"Grenade",None,"Grenade",
+                        "General","Engineer","Colonel","Engineer","Lieutenant"]
+        y = 11
+        x = 0
+        for piece in peicePosition:
+            if x < self.numCol:
+                self.tiles[y][x].setPiece(self.spawnPiece(0,piece,self.tiles[y][x].getPos))
+                x = x + 1
+            if x == self.numCol:
+                x = 0
+                y = y - 1
+        for k in range(len(self.selectionPaneTiles)):
+            self.selectionPaneTiles[k].removeAll()
+        for item in self.pieceData:
+            self.pieceData[item] = [0]
+
+    def autoSetup2(self):
+        peicePosition = ["Captain","Flag","Colonel","Commander","Captain",
+                        "Landmine","Landmine","Landmine","Major","Commander",
+                        "Captain",None,"Commander",None,"Colonel",
+                        "Engineer","Brigadier",None,"Brigadier","Engineer",
+                        "Grenade",None,"Grenade",None,"Major",
+                        "Lieutenant","Marshal","General","Engineer","Lieutenant"]
+        y = 11
+        x = 0
+        for piece in peicePosition:
+            if x < self.numCol:
+                self.tiles[y][x].setPiece(self.spawnPiece(0,piece,self.tiles[y][x].getPos))
+                x = x + 1
+            if x == self.numCol:
+                x = 0
+                y = y - 1
+        for k in range(len(self.selectionPaneTiles)):
+            self.selectionPaneTiles[k].removeAll()
+        for item in self.pieceData:
+            self.pieceData[item] = [0]
+            
+    def undoSetup(self):
+        y = 11
+        x = 0
+        for i in range(30):
+            if x < self.numCol:
+                self.tiles[y][x].setPiece(None)
+                x = x + 1
+            if x == self.numCol:
+                x = 0
+                y = y - 1
+        self.pieceData = {"Flag": [1],
+                          "Grenade": [2],
+                          "Landmine": [3],
+                          "Marshal": [1],
+                          "General": [1],
+                          "Lieutenant": [2],
+                          "Brigadier": [2],
+                          "Colonel": [2],
+                          "Major": [2],
+                          "Captain": [3],
+                          "Commander": [3],
+                          "Engineer": [3]}
+        self.selectionPaneTiles = self.generateSelectionPane()

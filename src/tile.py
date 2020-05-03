@@ -70,36 +70,6 @@ class Tile():
                 return True
         return False
 
-    def getPos(self):
-        return (self.x,self.y)
-
-    def getColor(self):
-        return self.color   #color is a tuple of size 3
-
-    def setColor(self,color):
-        self.color = color  #color is a tuple of size 3
-
-    def setTransparency(self, transparent):
-        self.transparent = transparent  #transparent is a boolean
-
-    #set color of outline
-    def setOutline(self,outline,outlineColor = None):
-        self.outline = outline
-        self.outlineColor = outlineColor
-
-    def getPiece(self):
-        return self.piece   #piece is an object of Piece or it's subclasses
-
-    def setPiece(self, piece):
-        #set piece to None to remove piece
-        self.piece = piece  #piece is an object of Piece or it's subclasses
-
-    def getFlag(self):
-        return self.flag
-
-    def setFlag(self, flag):
-        self.flag = flag
-
     #update object properties
     def update(self,color,outline,outlineColor):
         self.setColor(color)
@@ -132,6 +102,34 @@ class Tile():
         #draw outline
         if self.outline:
             pygame.draw.rect(surface, self.outlineColor, self.rect, 2)
+    
+    def getPos(self):
+        return (self.x,self.y)
+
+    def getColor(self):
+        return self.color   #color is a tuple of size 3
+
+    def setColor(self,color):
+        self.color = color  #color is a tuple of size 3
+
+    def setTransparency(self, transparent):
+        self.transparent = transparent  #transparent is a boolean
+    
+    def setOutline(self,outline,outlineColor = None):
+        self.outline = outline
+        self.outlineColor = outlineColor
+
+    def getPiece(self):
+        return self.piece   #piece is an object of Piece or it's subclasses
+
+    def setPiece(self, piece):
+        self.piece = piece  #piece is an object of Piece or it's subclasses
+
+    def getFlag(self):
+        return self.flag
+
+    def setFlag(self, flag):
+        self.flag = flag
 
 class SelectionPaneTile(Tile):
     def __init__(self, x, y, width, height, color=(...), transparent=False, outline=False, outlineColor=(...), text='', textColor=(...), nPieces=0):
@@ -139,20 +137,18 @@ class SelectionPaneTile(Tile):
         self.nPieces = nPieces
         super().__init__(x, y, width, height, color=color, transparent=transparent, outline=outline, outlineColor=outlineColor, text=text, textColor=textColor)
 
-    def getPiece(self):
-        if self.pieces == []:
-            return None
-        return self.pieces[0]
-
+    #add piece to the tile
     def addPiece(self, piece):
         if len(self.pieces) <= self.nPieces and (self.pieces == [] or self.pieces[0].toString() == piece.toString()):
             #only can add when empty or is same piece
             self.pieces.append(piece)
 
+    #remove a piece from tile
     def removePiece(self):
         if len(self.pieces) > 0:
             self.pieces.pop(0)
 
+    #remove all piece from tile
     def removeAll(self):
         self.pieces = []
 
@@ -162,3 +158,8 @@ class SelectionPaneTile(Tile):
         if self.pieces:
             image = pygame.image.load(self.pieces[0].getPath())
             surface.blit(image, (self.x + (self.width / 2 - image.get_width() / 2), self.y + (self.height / 2 - image.get_height() / 2)))
+    
+    def getPiece(self):
+        if self.pieces == []:
+            return None
+        return self.pieces[0]

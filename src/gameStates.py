@@ -15,9 +15,11 @@ class GameState():
     def __init__(self, gsm):
         self.gsm = gsm
     
+    #draw game state's component
     def draw(self):
         pass
 
+    #update gamestates
     def update(self):
         pass
     
@@ -292,7 +294,7 @@ class GameOver(GameState):
         else:
             self.result = "YOU LOST THE WAR"
 
-    def draw(self, surface, win = None):
+    def draw(self, surface):
         #Show Background
         surface.blit(self.gameOverImage,(0,0))
         #Write Title

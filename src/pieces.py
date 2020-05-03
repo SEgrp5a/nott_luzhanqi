@@ -28,10 +28,6 @@ class Flag(Piece):
         self.alliance = alliance
         self.position = position
         self.path = "bin\\" + self.toString() + ".png"
-        self.taken = False
-
-    def istaken(self):
-        return self.taken
 
 class Grenade(Piece):
 

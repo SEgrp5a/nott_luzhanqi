@@ -4,7 +4,8 @@ class GameStateManager():
 
         self.currentGameState = None
         self.prevGameState = None
-
+    
+    #set game state
     def setState(self,gameState):
         self.prevGameState = self.currentGameState
         self.currentGameState = gameState
