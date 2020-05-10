@@ -261,7 +261,7 @@ class Board:
             # flag can only be placed in headquarters
             return False
         if piece.toString() == "Landmine" and not (row == 10 or row == 11):
-            # landmine can only be initaiize at last 2 rows
+            # landmine can only be initailize at last 2 rows
             return False
         if piece.toString() == "Grenade" and row == 6:
             # grenade cannot be placed at 1st row
@@ -345,7 +345,6 @@ class Board:
                         index = index + 1
 
             # search path to dest using DFS
-            # DFS algorithm referenced from https://www.koderdojo.com/blog/depth-first-search-in-python-recursive-and-non-recursive-programming
             def DFS_checkAvailableMovement(graph, start, dest):
                 stack = [start]
                 path = []
@@ -418,7 +417,10 @@ class Board:
                         action = None
                         break
         # if currently on camp
-        elif self.layout[pieceRow][pieceCol] == "CP" and (up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+        elif self.layout[pieceRow][pieceCol] == "CP" and (
+                up == (row, col) or dw == (row, col) or lf == (row, col) or
+                rg == (row, col) or ul == (row, col) or ur == (row, col) or
+                dl == (row, col) or dr == (row, col)):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             elif self.tiles[row][col].getPiece().getAlliance() != piece.getAlliance():
@@ -427,8 +429,9 @@ class Board:
                 action = None
         # if moving to camp
         elif self.layout[row][col] == "CP" and (
-                up == (row, col) or dw == (row, col) or lf == (row, col) or rg == (row, col) or ul == (
-                row, col) or ur == (row, col) or dl == (row, col) or dr == (row, col)):
+                up == (row, col) or dw == (row, col) or lf == (row, col) or
+                rg == (row, col) or ul == (row, col) or ur == (row, col) or
+                dl == (row, col) or dr == (row, col)):
             if not self.tiles[row][col].getPiece():
                 action = "move"
             else:

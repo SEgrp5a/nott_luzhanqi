@@ -46,7 +46,7 @@ class Game:
             gameStates[gsm.currentGameState] = InGame(100, 55, 12, 5, gsm)
         result = gameStates[gsm.currentGameState].update(event)
         if gsm.currentGameState == "GameOver" and gameStates[gsm.currentGameState] is None:
-            gameStates[gsm.currentGameState] = GameOver(displayWidth, displayHeight, gameStates["InGame"].win, gsm)
+            gameStates[gsm.currentGameState] = GameOver(1200, 716, gameStates["InGame"].win, gsm)
 
     # draw the component of the game states
     def draw(GAMEDISPLAY, gsm, gameStates):

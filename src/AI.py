@@ -211,7 +211,10 @@ class AI:
                         dr = (nextState[temp][0][0] + 1, nextState[temp][0][1] + 1)  # downright
                         tempDest = (temp2[0][0], temp2[0][1])
                         # special case for if there is enemy piece in camp
-                        if temp2[2] is None and self.brd.layout[temp2[0][0]][temp2[0][1]] == "CP" and (up == tempDest or dw == tempDest or lf == tempDest or rg == tempDest or ul == tempDest or ur == tempDest or dl == tempDest or dr == tempDest):  # check if it is an adjacent camp
+                        if temp2[2] is None and self.brd.layout[temp2[0][0]][temp2[0][1]] == "CP" and (
+                                up == tempDest or dw == tempDest or lf == tempDest or
+                                rg == tempDest or ul == tempDest or ur == tempDest or
+                                dl == tempDest or dr == tempDest):  # check if it is an adjacent camp
                             if self.brd.tiles[temp2[0][0]][temp2[0][1]].getPiece() is not None and self.brd.tiles[i][j].getPiece().getAlliance() != 1:  # check for piece and its' alliance
                                 attackCounter = attackCounter + 1
                                 min = self.moveHeuristic[tempDest[0]][tempDest[1]] + self.calcAttack(temp, temp.getRank(), self.prediction[self.brd.tiles[temp2[0][0]][temp2[0][1]].getPiece()])
